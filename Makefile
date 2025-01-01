@@ -26,18 +26,18 @@ compile-protos:
 	@buf generate
 
 # ----- TESTS -----
-tests:
-	echo tests
+tests: test-auth test-server
 
-test-service:
+test-auth:
 	@echo -----------------------------------------
-	# @go test mist/src/rpcs -coverprofile=coverage/coverage.out  $(go_test_flags)
-	# @go tool cover $(go_test_coverage_flags)
+	@go test mist-io/src/auth -coverprofile=coverage/coverage.out  $(go_test_flags)
+	@go tool cover $(go_test_coverage_flags)
 
-test-middleware:
+
+test-server:
 	@echo -----------------------------------------
-	# @go test mist/src/middleware -coverprofile=coverage/coverage.out  $(go_test_flags)
-	# @go tool cover $(go_test_coverage_flags)
+	@go test mist-io/src/server -coverprofile=coverage/coverage.out  $(go_test_flags)
+	@go tool cover $(go_test_coverage_flags)
 
 # ----- FORMAT -----
 lint:
