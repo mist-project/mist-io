@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"net/http"
+	"net/url"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -29,11 +29,11 @@ func TestAuthenticateRequest(t *testing.T) {
 			})
 
 		// Set the Authorization header in http.Header
-		headers := http.Header{}
-		headers.Set("Authorization", fmt.Sprintf("Bearer %s", tokenStr))
+		queryValues := url.Values{}
+		queryValues.Add("Authorization", fmt.Sprintf("Bearer %s", tokenStr))
 
 		// ACT
-		tokenAndClaims, err := AuthenticateRequest(headers)
+		tokenAndClaims, err := AuthenticateRequest(queryValues)
 
 		// ASSERT
 		assert.Nil(t, err)
@@ -50,16 +50,16 @@ func TestAuthenticateRequest(t *testing.T) {
 			})
 
 		// Set the Authorization header in http.Header
-		headers := http.Header{}
-		headers.Set("Authorization", fmt.Sprintf("Bearer %s", tokenStr))
+		queryValues := url.Values{}
+		queryValues.Add("Authorization", fmt.Sprintf("Bearer %s", tokenStr))
 
 		// ACT
-		token, err := AuthenticateRequest(headers)
+		tokenAndClaims, err := AuthenticateRequest(queryValues)
 
 		// ASSERT
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "invalid audience claim")
-		assert.Nil(t, token)
+		assert.Nil(t, tokenAndClaims)
 	})
 
 	t.Run("invalid_issuer", func(t *testing.T) {
@@ -71,16 +71,16 @@ func TestAuthenticateRequest(t *testing.T) {
 			})
 
 		// Set the Authorization header in http.Header
-		headers := http.Header{}
-		headers.Set("Authorization", fmt.Sprintf("Bearer %s", tokenStr))
+		queryValues := url.Values{}
+		queryValues.Add("Authorization", fmt.Sprintf("Bearer %s", tokenStr))
 
 		// ACT
-		token, err := AuthenticateRequest(headers)
+		tokenAndClaims, err := AuthenticateRequest(queryValues)
 
 		// ASSERT
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "invalid issuer claim")
-		assert.Nil(t, token)
+		assert.Nil(t, tokenAndClaims)
 	})
 
 	t.Run("invalid_secret_key", func(t *testing.T) {
@@ -93,71 +93,72 @@ func TestAuthenticateRequest(t *testing.T) {
 			})
 
 		// Set the Authorization header in http.Header
-		headers := http.Header{}
-		headers.Set("Authorization", fmt.Sprintf("Bearer %s", tokenStr))
+		queryValues := url.Values{}
+		queryValues.Add("Authorization", fmt.Sprintf("Bearer %s", tokenStr))
 
 		// ACT
-		token, err := AuthenticateRequest(headers)
+		tokenAndClaims, err := AuthenticateRequest(queryValues)
 
 		// ASSERT
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "error parsing token")
-		assert.Nil(t, token)
+		assert.Nil(t, tokenAndClaims)
 	})
 
 	t.Run("invalid_token_format", func(t *testing.T) {
 		// ARRANGE
-		headers := http.Header{}
-		headers.Set("Authorization", "Bearer bad_token")
+		queryValues := url.Values{}
+		queryValues.Add("Authorization", "Bearer bad_token")
 
 		// ACT
-		token, err := AuthenticateRequest(headers)
+		tokenAndClaims, err := AuthenticateRequest(queryValues)
 
 		// ASSERT
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "token is malformed")
-		assert.Nil(t, token)
+		assert.Nil(t, tokenAndClaims)
 	})
 
 	t.Run("missing_authorization_header", func(t *testing.T) {
 		// ARRANGE
-		headers := http.Header{} // No Authorization header
+		// ARRANGE
+		queryValues := url.Values{}
 
 		// ACT
-		token, err := AuthenticateRequest(headers)
+		tokenAndClaims, err := AuthenticateRequest(queryValues)
 
 		// ASSERT
 		assert.NotNil(t, err)
-		assert.Contains(t, err.Error(), "unauthenticated")
-		assert.Nil(t, token)
+		assert.Contains(t, err.Error(), "invalid token")
+		assert.Nil(t, tokenAndClaims)
 	})
 
 	t.Run("invalid_authorization_bearer_header", func(t *testing.T) {
 		// ARRANGE
-		headers := http.Header{}
-		headers.Set("Authorization", "token invalid")
+		queryValues := url.Values{}
+		queryValues.Add("Authorization", "Bearer token_invalid")
 
 		// ACT
-		token, err := AuthenticateRequest(headers)
+		tokenAndClaims, err := AuthenticateRequest(queryValues)
 
 		// ASSERT
 		assert.NotNil(t, err)
-		assert.Contains(t, err.Error(), "invalid token")
-		assert.Nil(t, token)
+		assert.Contains(t, err.Error(), "token is malformed")
+		assert.Nil(t, tokenAndClaims)
 	})
 
 	t.Run("empty_authorization_bearer_header", func(t *testing.T) {
 		// ARRANGE
-		headers := http.Header{}
-		headers.Set("Authorization", "")
+		queryValues := url.Values{}
+		queryValues.Add("Authorization", "")
 
 		// ACT
-		token, err := AuthenticateRequest(headers)
+		tokenAndClaims, err := AuthenticateRequest(queryValues)
 
 		// ASSERT
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "invalid token")
-		assert.Nil(t, token)
+		assert.Nil(t, tokenAndClaims)
 	})
 
 	t.Run("invalid_claims_format_for_audience", func(t *testing.T) {
@@ -172,26 +173,26 @@ func TestAuthenticateRequest(t *testing.T) {
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 		tokenStr, err := token.SignedString([]byte(os.Getenv("MIST_API_JWT_SECRET_KEY")))
 
-		headers := http.Header{}
-		headers.Set("Authorization", fmt.Sprintf("Bearer %s", tokenStr))
+		queryValues := url.Values{}
+		queryValues.Add("Authorization", fmt.Sprintf("Bearer %s", tokenStr))
 
 		// ACT
-		returnToken, err := AuthenticateRequest(headers)
+		tokenAndClaims, err := AuthenticateRequest(queryValues)
 
 		// ASSERT
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "invalid audience claim")
-		assert.Nil(t, returnToken)
+		assert.Nil(t, tokenAndClaims)
 	})
 
 	t.Run("missing_header_errors", func(t *testing.T) {
 		// ARRANGE
 		// ACT
-		token, err := AuthenticateRequest(http.Header{})
+		token, err := AuthenticateRequest(url.Values{})
 
 		// ASSERT
 		assert.NotNil(t, err)
-		assert.Contains(t, err.Error(), "unauthenticated")
+		assert.Contains(t, err.Error(), "invalid token")
 		assert.Nil(t, token)
 	})
 }

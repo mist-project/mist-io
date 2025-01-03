@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 	"fmt"
-	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -78,24 +78,22 @@ func verifyJWT(tokenStr string) (*CustomJWTClaims, error) {
 	return claims, nil
 }
 
-func AuthenticateRequest(headers http.Header) (*TokenAndClaims, error) {
-	authorization := headers["Authorization"]
-	for _, token := range authorization {
-		parameters := strings.Split(token, " ")
-		if len(parameters) != 2 || parameters[0] != "Bearer" {
-			return nil, status.Errorf(codes.Unauthenticated, "invalid token")
-		}
+func AuthenticateRequest(params url.Values) (*TokenAndClaims, error) {
+	authorization := params.Get("Authorization")
+	parameters := strings.Split(authorization, " ")
 
-		claims, err := verifyJWT(parameters[1])
-
-		if err == nil {
-			// Proceed with next handler
-			return &TokenAndClaims{Claims: claims, Token: parameters[1]}, nil
-		}
-
-		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
+	if len(parameters) != 2 || parameters[0] != "Bearer" {
+		return nil, status.Errorf(codes.Unauthenticated, "invalid token")
 	}
-	return nil, status.Errorf(codes.Unauthenticated, "unauthenticated")
+
+	claims, err := verifyJWT(parameters[1])
+
+	if err == nil {
+		// Proceed with next handler
+		return &TokenAndClaims{Claims: claims, Token: parameters[1]}, nil
+	}
+
+	return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 }
 
 func GetJWTClaims(ctx context.Context) (*CustomJWTClaims, error) {

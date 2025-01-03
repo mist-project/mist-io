@@ -16,7 +16,7 @@ func wsHandler(upgrader *websocket.Upgrader) func(w http.ResponseWriter, r *http
 		// TODO: add more information about the user session
 		// TODO: move this to a separate function that allows more "middlewares"
 		// For example: what device. this will be stored to save sessions
-		tokenAndClaims, err := auth.AuthenticateRequest(r.Header)
+		tokenAndClaims, err := auth.AuthenticateRequest(r.URL.Query())
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unauthenticated. error: %s", err), http.StatusUnauthorized)
 			return

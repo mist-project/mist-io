@@ -5,6 +5,7 @@ import (
 	"mist-io/src/auth"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"strings"
 	"testing"
@@ -71,21 +72,20 @@ func TestInitializer(t *testing.T) {
 			Initialize(address)
 		}()
 		// Wwait for server to be up
-		time.Sleep(25 * time.Millisecond)
+		time.Sleep(20 * time.Millisecond)
 
 		// wait for server to initialize
-		url := fmt.Sprintf("ws://%s/io", address)
 		tokenStr := createJwtToken(t,
 			&CreateTokenParams{
 				iss:       os.Getenv("MIST_API_JWT_ISSUER"),
 				aud:       []string{os.Getenv("MIST_API_JWT_AUDIENCE")},
 				secretKey: os.Getenv("MIST_API_JWT_SECRET_KEY"),
 			})
-		headers := http.Header{}
-		headers.Set("Authorization", fmt.Sprintf("Bearer %s", tokenStr))
+
+		wsUrl := fmt.Sprintf("ws://%s/io?Authorization=%s", address, url.QueryEscape(fmt.Sprintf("Bearer %s", tokenStr)))
 
 		// ACT
-		ws, _, err := websocket.DefaultDialer.Dial(url, headers)
+		ws, _, err := websocket.DefaultDialer.Dial(wsUrl, nil)
 		defer ws.Close()
 
 		// ASSERT
@@ -108,7 +108,7 @@ func TestWsHandler(t *testing.T) {
 	// SETUP
 	upgrader := websocket.Upgrader{}
 	s := httptest.NewServer(http.HandlerFunc(wsHandler(&upgrader)))
-	url := getUrl(s)
+	wsUrl := getUrl(s)
 	defer s.Close()
 
 	t.Run("successful_connection", func(t *testing.T) {
@@ -119,11 +119,11 @@ func TestWsHandler(t *testing.T) {
 				aud:       []string{os.Getenv("MIST_API_JWT_AUDIENCE")},
 				secretKey: os.Getenv("MIST_API_JWT_SECRET_KEY"),
 			})
-		headers := http.Header{}
-		headers.Set("Authorization", fmt.Sprintf("Bearer %s", tokenStr))
+
+		wsUrl := fmt.Sprintf("%s/io?Authorization=%s", getUrl(s), url.QueryEscape(fmt.Sprintf("Bearer %s", tokenStr)))
 
 		// ACT
-		ws, _, err := websocket.DefaultDialer.Dial(url, headers)
+		ws, _, err := websocket.DefaultDialer.Dial(wsUrl, nil)
 		defer ws.Close()
 
 		// ASSERT
@@ -133,36 +133,12 @@ func TestWsHandler(t *testing.T) {
 
 	t.Run("missing_authorization_header", func(t *testing.T) {
 		// ARRANGE
-		url = getUrl(s)
+		wsUrl = getUrl(s)
 
 		// ACT
-		_, _, err := websocket.DefaultDialer.Dial(url, nil)
+		_, _, err := websocket.DefaultDialer.Dial(wsUrl, nil)
 
 		// ASSERT
 		assert.NotNil(t, err)
 	})
-
-	// Test WebSocket echo behavior
-	// t.Run("WebSocket message echo", func(t *testing.T) {
-	// 	// Create a mock HTTP request with the correct Authorization header
-	// 	req := httptest.NewRequest("GET", url, nil)
-	// 	req.Header.Set("Authorization", "Bearer valid-token")
-
-	// 	// Record the response
-	// 	// rr := httptest.NewRecorder()
-
-	// 	// Upgrade to WebSocket connection
-	// 	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
-	// 	assert.Nil(t, err)
-	// 	defer conn.Close()
-
-	// 	// Send a message
-	// 	err = conn.WriteMessage(websocket.TextMessage, []byte("Test Message"))
-	// 	assert.Nil(t, err)
-
-	// 	// Read the response message (echoed back)
-	// 	_, response, err := conn.ReadMessage()
-	// 	assert.Nil(t, err)
-	// 	assert.Equal(t, []byte("Test Message"), response)
-	// })
 }
