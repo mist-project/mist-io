@@ -24,8 +24,10 @@ func wsHandler(upgrader *websocket.Upgrader) func(w http.ResponseWriter, r *http
 
 		// Upgrade HTTP connection to WebSocket connection
 		conn, err := upgrader.Upgrade(w, r, nil)
+
 		if err != nil {
 			http.Error(w, "Unable to upgrade connection.", http.StatusBadRequest)
+			fmt.Println("is the problem here?")
 			return
 		}
 		defer conn.Close()
@@ -37,7 +39,6 @@ func wsHandler(upgrader *websocket.Upgrader) func(w http.ResponseWriter, r *http
 			JwtToken: tokenAndClaims.Token,
 			Claims:   tokenAndClaims.Claims,
 		}
-
 		wsConnection.Manage()
 	}
 	return handler

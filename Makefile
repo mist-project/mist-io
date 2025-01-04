@@ -22,7 +22,7 @@ build: compile-protos
 live-run: compile-protos
 	@air --build.cmd "go build -o bin/mist src/main.go" --build.bin "./bin/mist"
 
-compile-protos:
+compile-protos cp:
 	@buf generate
 
 # ----- TESTS -----

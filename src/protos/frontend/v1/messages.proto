@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package frontend.v1;
+
+option go_package = "/frontend";
+
+// ----- SHARED -----
+message InputMessage {
+  Meta meta = 1;
+  Input input = 2;
+}
+
+message OutputMessage {
+  Meta meta = 1;
+  Output output = 2;
+}
+
+message Meta { ActionType action = 1; }
+
+enum ActionType {
+  ACTION_TYPE_UNSPECIFIED = 0;
+  ACTION_TYPE_GET = 1;
+  ACTION_TYPE_LIST = 2;
+  ACTION_TYPE_CREATE = 3;
+  ACTION_TYPE_UPDATE = 4;
+  ACTION_TYPE_DELETE = 5;
+  ACTION_TYPE_NOTIFICATION = 6;
+}
+
+// ----- INPUT -----
+message Input {
+  oneof data { UpdateJwtToken update_jwt_token = 1; }
+}
+
+message UpdateJwtToken { string access = 1; }
+
+// ----- OUTPUT -----
+message Output {
+  // data sent from socket to user
+}

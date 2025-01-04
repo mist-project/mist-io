@@ -79,7 +79,7 @@ func verifyJWT(tokenStr string) (*CustomJWTClaims, error) {
 }
 
 func AuthenticateRequest(params url.Values) (*TokenAndClaims, error) {
-	authorization := params.Get("Authorization")
+	authorization := params.Get("authorization")
 	parameters := strings.Split(authorization, " ")
 
 	if len(parameters) != 2 || parameters[0] != "Bearer" {

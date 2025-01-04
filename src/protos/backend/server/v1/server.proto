@@ -3,7 +3,7 @@ syntax = "proto3";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 
-package server.v1;
+package backend.server.v1;
 option go_package = "/server";
 
 service ServerService {
