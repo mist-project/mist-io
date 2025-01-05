@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             (unknown)
-// source: backend/channel/v1/channel.proto
+// source: channel.proto
 
-package channel
+package protos
 
 import (
 	context "context"
@@ -19,10 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ChannelService_CreateChannel_FullMethodName  = "/backend.channel.v1.ChannelService/CreateChannel"
-	ChannelService_GetByIdChannel_FullMethodName = "/backend.channel.v1.ChannelService/GetByIdChannel"
-	ChannelService_ListChannels_FullMethodName   = "/backend.channel.v1.ChannelService/ListChannels"
-	ChannelService_DeleteChannel_FullMethodName  = "/backend.channel.v1.ChannelService/DeleteChannel"
+	ChannelService_CreateChannel_FullMethodName  = "/channel.ChannelService/CreateChannel"
+	ChannelService_GetByIdChannel_FullMethodName = "/channel.ChannelService/GetByIdChannel"
+	ChannelService_ListChannels_FullMethodName   = "/channel.ChannelService/ListChannels"
+	ChannelService_DeleteChannel_FullMethodName  = "/channel.ChannelService/DeleteChannel"
 )
 
 // ChannelServiceClient is the client API for ChannelService service.
@@ -212,7 +212,7 @@ func _ChannelService_DeleteChannel_Handler(srv interface{}, ctx context.Context,
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ChannelService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "backend.channel.v1.ChannelService",
+	ServiceName: "channel.ChannelService",
 	HandlerType: (*ChannelServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -233,5 +233,5 @@ var ChannelService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "backend/channel/v1/channel.proto",
+	Metadata: "channel.proto",
 }

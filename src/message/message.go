@@ -5,19 +5,21 @@ import (
 	"log"
 
 	"github.com/gorilla/websocket"
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 
 	"mist-io/src/auth"
 	"mist-io/src/helpers"
-	pb_shared "mist-io/src/protos/frontend/v1"
+	pb "mist-io/src/protos/v1/gen"
 )
 
 type WsConnection struct {
 	Conn *websocket.Conn
 	// Mutex    *sync.Mutex // TBD if needed
-	JwtToken string
-	Claims   *auth.CustomJWTClaims
-	queue    *helpers.Queue[InternalItem]
+	JwtToken   string
+	Claims     *auth.CustomJWTClaims
+	queue      *helpers.Queue[InternalItem]
+	ClientConn *grpc.ClientConn
 }
 
 type InternalItem struct {
@@ -34,7 +36,7 @@ func (wsc *WsConnection) Manage() {
 	for {
 		messageType, p, err := wsc.Conn.ReadMessage()
 
-		parsedMessage := &pb_shared.InputMessage{}
+		parsedMessage := &pb.InputMessage{}
 
 		err = proto.Unmarshal(p, parsedMessage)
 		if err != nil {
@@ -42,27 +44,39 @@ func (wsc *WsConnection) Manage() {
 			log.Println(err)
 			return
 		}
-		fmt.Println("made ithere')")
 
-		// for now echo by adding message to queue
-		wsc.queue.Enqueue(&InternalItem{
-			internalType: messageType,
-			data:         p,
-		})
+		go wsc.socketMessageHandler(parsedMessage, messageType)
+
 	}
 
 }
 
-func (wsc WsConnection) socketMessageHandler(message *pb_shared.InputMessage) {
+func (wsc *WsConnection) socketMessageHandler(message *pb.InputMessage, messageType int) {
+	var response []byte
+	var err error
 	switch input := message.Input.Data.(type) {
-	case *pb_shared.Input_UpdateJwtToken:
-		fmt.Println("Text:", input.UpdateJwtToken)
+	case *pb.Input_UpdateJwtToken:
+		wsc.UpdateJwtToken(input)
+		return
+	case *pb.Input_ServerListing:
+		response, err = wsc.ServerListing(input)
+
 	default:
 		fmt.Println("Unknown type")
 	}
+
+	if err != nil {
+		// TODO: better error handling here
+		return
+	}
+	wsc.queue.Enqueue(&InternalItem{
+		internalType: messageType,
+		data:         response,
+	})
+
 }
 
-func (wsc WsConnection) messageQueueHandler() {
+func (wsc *WsConnection) messageQueueHandler() {
 	// This will be the entrypoint used to store all messages to the user
 	// One message can be sent at a time only
 	for {

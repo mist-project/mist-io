@@ -8,9 +8,10 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"google.golang.org/grpc"
 )
 
-func wsHandler(upgrader *websocket.Upgrader) func(w http.ResponseWriter, r *http.Request) {
+func wsHandler(upgrader *websocket.Upgrader, clientConn *grpc.ClientConn) func(w http.ResponseWriter, r *http.Request) {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		// First authenticate the request
 		// TODO: add more information about the user session
@@ -22,12 +23,18 @@ func wsHandler(upgrader *websocket.Upgrader) func(w http.ResponseWriter, r *http
 			return
 		}
 
+		fmt.Println("Establishing new connection...")
+
+		if err != nil {
+			http.Error(w, "Unable to establish  connection.", http.StatusBadRequest)
+			return
+		}
+
 		// Upgrade HTTP connection to WebSocket connection
 		conn, err := upgrader.Upgrade(w, r, nil)
 
 		if err != nil {
 			http.Error(w, "Unable to upgrade connection.", http.StatusBadRequest)
-			fmt.Println("is the problem here?")
 			return
 		}
 		defer conn.Close()
@@ -36,16 +43,16 @@ func wsHandler(upgrader *websocket.Upgrader) func(w http.ResponseWriter, r *http
 		wsConnection := message.WsConnection{
 			Conn: conn,
 			// Mutex:    &sync.Mutex{}, // TBD if needed
-			JwtToken: tokenAndClaims.Token,
-			Claims:   tokenAndClaims.Claims,
+			JwtToken:   tokenAndClaims.Token,
+			Claims:     tokenAndClaims.Claims,
+			ClientConn: clientConn,
 		}
 		wsConnection.Manage()
 	}
 	return handler
 }
-func AddHandlers(upgrader *websocket.Upgrader) {
-	http.HandleFunc("/io", wsHandler(upgrader))
-
+func AddHandlers(upgrader *websocket.Upgrader, clientConn *grpc.ClientConn) {
+	http.HandleFunc("/io", wsHandler(upgrader, clientConn))
 }
 func Initialize(address string) {
 

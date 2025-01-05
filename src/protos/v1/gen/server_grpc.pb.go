@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             (unknown)
-// source: backend/server/v1/server.proto
+// source: server.proto
 
-package server
+package protos
 
 import (
 	context "context"
@@ -19,18 +19,18 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ServerService_CreateAppserver_FullMethodName        = "/backend.server.v1.ServerService/CreateAppserver"
-	ServerService_GetByIdAppserver_FullMethodName       = "/backend.server.v1.ServerService/GetByIdAppserver"
-	ServerService_ListAppservers_FullMethodName         = "/backend.server.v1.ServerService/ListAppservers"
-	ServerService_DeleteAppserver_FullMethodName        = "/backend.server.v1.ServerService/DeleteAppserver"
-	ServerService_CreateAppserverSub_FullMethodName     = "/backend.server.v1.ServerService/CreateAppserverSub"
-	ServerService_GetUserAppserverSubs_FullMethodName   = "/backend.server.v1.ServerService/GetUserAppserverSubs"
-	ServerService_DeleteAppserverSub_FullMethodName     = "/backend.server.v1.ServerService/DeleteAppserverSub"
-	ServerService_CreateAppserverRole_FullMethodName    = "/backend.server.v1.ServerService/CreateAppserverRole"
-	ServerService_GetAllAppserverRoles_FullMethodName   = "/backend.server.v1.ServerService/GetAllAppserverRoles"
-	ServerService_DeleteAppserverRole_FullMethodName    = "/backend.server.v1.ServerService/DeleteAppserverRole"
-	ServerService_CreateAppserverRoleSub_FullMethodName = "/backend.server.v1.ServerService/CreateAppserverRoleSub"
-	ServerService_DeleteAppserverRoleSub_FullMethodName = "/backend.server.v1.ServerService/DeleteAppserverRoleSub"
+	ServerService_CreateAppserver_FullMethodName        = "/v1.server.ServerService/CreateAppserver"
+	ServerService_GetByIdAppserver_FullMethodName       = "/v1.server.ServerService/GetByIdAppserver"
+	ServerService_ListAppservers_FullMethodName         = "/v1.server.ServerService/ListAppservers"
+	ServerService_DeleteAppserver_FullMethodName        = "/v1.server.ServerService/DeleteAppserver"
+	ServerService_CreateAppserverSub_FullMethodName     = "/v1.server.ServerService/CreateAppserverSub"
+	ServerService_GetUserAppserverSubs_FullMethodName   = "/v1.server.ServerService/GetUserAppserverSubs"
+	ServerService_DeleteAppserverSub_FullMethodName     = "/v1.server.ServerService/DeleteAppserverSub"
+	ServerService_CreateAppserverRole_FullMethodName    = "/v1.server.ServerService/CreateAppserverRole"
+	ServerService_GetAllAppserverRoles_FullMethodName   = "/v1.server.ServerService/GetAllAppserverRoles"
+	ServerService_DeleteAppserverRole_FullMethodName    = "/v1.server.ServerService/DeleteAppserverRole"
+	ServerService_CreateAppserverRoleSub_FullMethodName = "/v1.server.ServerService/CreateAppserverRoleSub"
+	ServerService_DeleteAppserverRoleSub_FullMethodName = "/v1.server.ServerService/DeleteAppserverRoleSub"
 )
 
 // ServerServiceClient is the client API for ServerService service.
@@ -490,7 +490,7 @@ func _ServerService_DeleteAppserverRoleSub_Handler(srv interface{}, ctx context.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ServerService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "backend.server.v1.ServerService",
+	ServiceName: "v1.server.ServerService",
 	HandlerType: (*ServerServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -543,5 +543,5 @@ var ServerService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "backend/server/v1/server.proto",
+	Metadata: "server.proto",
 }

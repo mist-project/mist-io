@@ -1,8 +1,9 @@
 syntax = "proto3";
 
-package frontend.v1;
+import "server.proto";
+package v1.messages;
 
-option go_package = "/frontend";
+option go_package = "/protos";
 
 // ----- SHARED -----
 message InputMessage {
@@ -29,12 +30,21 @@ enum ActionType {
 
 // ----- INPUT -----
 message Input {
-  oneof data { UpdateJwtToken update_jwt_token = 1; }
+  oneof data {
+    UpdateJwtToken update_jwt_token = 1;
+    ServerListingRequest server_listing = 2;
+  }
 }
 
 message UpdateJwtToken { string access = 1; }
 
 // ----- OUTPUT -----
 message Output {
-  // data sent from socket to user
+  oneof data { ServerListingResponse server_listing = 1; }
 }
+
+// ----- BY RESOURCE -----
+// ** SERVERS **
+
+message ServerListingRequest {}
+message ServerListingResponse { repeated server.Appserver appservers = 1; }

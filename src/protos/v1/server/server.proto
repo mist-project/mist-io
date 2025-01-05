@@ -3,8 +3,8 @@ syntax = "proto3";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 
-package backend.server.v1;
-option go_package = "/server";
+package v1.server;
+option go_package = "/protos";
 
 service ServerService {
   // ----- APPSERVER ----
@@ -71,14 +71,6 @@ message AppserverRoleSub {
   string id = 1;
   string appserver_role_id = 2;
   string appserver_sub_id = 3;
-}
-
-message Channel {
-  string id = 1;
-  string name = 2;
-  string appserver_id = 3;
-  google.protobuf.Timestamp created_at = 4;
-  google.protobuf.Timestamp updated_at = 5;
 }
 
 // RESPONSE/REQUEST
