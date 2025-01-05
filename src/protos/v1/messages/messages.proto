@@ -32,7 +32,8 @@ enum ActionType {
 message Input {
   oneof data {
     UpdateJwtToken update_jwt_token = 1;
-    ServerListingRequest server_listing = 2;
+    AppserverListingRequest appserver_listing = 2;
+    server.CreateAppserverRequest create_appserver = 3;
   }
 }
 
@@ -40,10 +41,14 @@ message UpdateJwtToken { string access = 1; }
 
 // ----- OUTPUT -----
 message Output {
-  oneof data { server.GetUserAppserverSubsResponse server_listing = 1; }
+  oneof data { server.GetUserAppserverSubsResponse appserver_listing = 1; }
 }
 
 // ----- BY RESOURCE -----
 // ** SERVERS **
 
-message ServerListingRequest {}
+// LISTING
+message AppserverListingRequest {}
+message ServerListingResponse {
+  repeated server.AppserverAndSub appservers = 1;
+}
