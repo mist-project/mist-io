@@ -1,6 +1,7 @@
-package auth
+package auth_test
 
 import (
+	"mist-io/src/auth"
 	"testing"
 	"time"
 
@@ -18,7 +19,7 @@ func createJwtToken(t *testing.T, params *CreateTokenParams) string {
 	// Define secret key for signing the token
 
 	// Define JWT claims
-	claims := &CustomJWTClaims{
+	claims := &auth.CustomJWTClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:   params.iss,
 			Audience: params.aud,

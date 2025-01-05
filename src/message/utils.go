@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+
+	pb "mist-io/src/protos/v1/gen"
 )
 
 func (wsc *WsConnection) SetupContext() (context.Context, context.CancelFunc) {
@@ -16,6 +19,17 @@ func (wsc *WsConnection) SetupContext() (context.Context, context.CancelFunc) {
 	)
 
 	ctx = metadata.NewOutgoingContext(ctx, grpcMetadata)
-
 	return ctx, cancel
+}
+
+type GrpcClient interface {
+	GetServerClient() pb.ServerServiceClient
+}
+
+type Client struct {
+	Conn *grpc.ClientConn
+}
+
+func (c Client) GetServerClient() pb.ServerServiceClient {
+	return pb.NewServerServiceClient(c.Conn)
 }

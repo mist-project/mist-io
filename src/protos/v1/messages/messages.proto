@@ -40,11 +40,10 @@ message UpdateJwtToken { string access = 1; }
 
 // ----- OUTPUT -----
 message Output {
-  oneof data { ServerListingResponse server_listing = 1; }
+  oneof data { server.GetUserAppserverSubsResponse server_listing = 1; }
 }
 
 // ----- BY RESOURCE -----
 // ** SERVERS **
 
 message ServerListingRequest {}
-message ServerListingResponse { repeated server.Appserver appservers = 1; }

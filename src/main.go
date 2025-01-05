@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
-	"mist-io/src/server"
+	"mist-io/src/ws"
 	"net/http"
 	"os"
 
@@ -33,6 +33,6 @@ func main() {
 	upgrader := websocket.Upgrader{CheckOrigin: checkOrigin}
 
 	// Add routes
-	server.AddHandlers(&upgrader, clientConn)
-	server.Initialize(address)
+	ws.AddHandlers(&upgrader, clientConn)
+	ws.Initialize(address)
 }

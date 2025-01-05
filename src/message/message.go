@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/gorilla/websocket"
-	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 
 	"mist-io/src/auth"
@@ -16,10 +15,10 @@ import (
 type WsConnection struct {
 	Conn *websocket.Conn
 	// Mutex    *sync.Mutex // TBD if needed
-	JwtToken   string
-	Claims     *auth.CustomJWTClaims
-	queue      *helpers.Queue[InternalItem]
-	ClientConn *grpc.ClientConn
+	JwtToken string
+	Claims   *auth.CustomJWTClaims
+	queue    *helpers.Queue[InternalItem]
+	Client   GrpcClient
 }
 
 type InternalItem struct {
@@ -45,20 +44,22 @@ func (wsc *WsConnection) Manage() {
 			return
 		}
 
-		go wsc.socketMessageHandler(parsedMessage, messageType)
+		wsc.socketMessageHandler(parsedMessage, messageType)
 
 	}
-
 }
 
 func (wsc *WsConnection) socketMessageHandler(message *pb.InputMessage, messageType int) {
 	var response []byte
 	var err error
+
 	switch input := message.Input.Data.(type) {
 	case *pb.Input_UpdateJwtToken:
+		fmt.Printf("JWT token message\n")
 		wsc.UpdateJwtToken(input)
 		return
 	case *pb.Input_ServerListing:
+		fmt.Printf("Server listing message\n")
 		response, err = wsc.ServerListing(input)
 
 	default:
@@ -66,9 +67,11 @@ func (wsc *WsConnection) socketMessageHandler(message *pb.InputMessage, messageT
 	}
 
 	if err != nil {
+		fmt.Printf("error processing %v\n", err)
 		// TODO: better error handling here
 		return
 	}
+
 	wsc.queue.Enqueue(&InternalItem{
 		internalType: messageType,
 		data:         response,

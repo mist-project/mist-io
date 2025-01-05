@@ -1,8 +1,9 @@
-package server
+package ws_test
 
 import (
 	"fmt"
 	"mist-io/src/auth"
+	"mist-io/src/ws"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -27,7 +28,7 @@ type CreateTokenParams struct {
 
 func TestMain(m *testing.M) {
 	// ----- INITIALIZE -----
-	AddHandlers(&upgrader)
+	ws.AddHandlers(&upgrader, nil)
 	// ----- EXECUTE TESTS -----
 	exitValue := m.Run()
 
@@ -69,7 +70,7 @@ func TestInitializer(t *testing.T) {
 		// ARRANGE
 		address := fmt.Sprintf("%s:%s", os.Getenv("TEST_APP_HOST"), os.Getenv("TEST_APP_PORT"))
 		go func() {
-			Initialize(address)
+			ws.Initialize(address)
 		}()
 		// Wwait for server to be up
 		time.Sleep(20 * time.Millisecond)
@@ -82,7 +83,7 @@ func TestInitializer(t *testing.T) {
 				secretKey: os.Getenv("MIST_API_JWT_SECRET_KEY"),
 			})
 
-		wsUrl := fmt.Sprintf("ws://%s/io?Authorization=%s", address, url.QueryEscape(fmt.Sprintf("Bearer %s", tokenStr)))
+		wsUrl := fmt.Sprintf("ws://%s/io?authorization=%s", address, url.QueryEscape(fmt.Sprintf("Bearer %s", tokenStr)))
 
 		// ACT
 		ws, _, err := websocket.DefaultDialer.Dial(wsUrl, nil)
@@ -101,13 +102,13 @@ func TestInitializer(t *testing.T) {
 		}()
 
 		// ARRANGE
-		Initialize("invalid")
+		ws.Initialize("invalid")
 	})
 }
 func TestWsHandler(t *testing.T) {
 	// SETUP
 	upgrader := websocket.Upgrader{}
-	s := httptest.NewServer(http.HandlerFunc(wsHandler(&upgrader)))
+	s := httptest.NewServer(http.HandlerFunc(ws.WsHandler(&upgrader, nil)))
 	wsUrl := getUrl(s)
 	defer s.Close()
 
@@ -120,7 +121,7 @@ func TestWsHandler(t *testing.T) {
 				secretKey: os.Getenv("MIST_API_JWT_SECRET_KEY"),
 			})
 
-		wsUrl := fmt.Sprintf("%s/io?Authorization=%s", getUrl(s), url.QueryEscape(fmt.Sprintf("Bearer %s", tokenStr)))
+		wsUrl := fmt.Sprintf("%s/io?authorization=%s", getUrl(s), url.QueryEscape(fmt.Sprintf("Bearer %s", tokenStr)))
 
 		// ACT
 		ws, _, err := websocket.DefaultDialer.Dial(wsUrl, nil)

@@ -1,9 +1,9 @@
 package message
 
 import (
-	pb "mist-io/src/protos/v1/gen"
-
 	"google.golang.org/protobuf/proto"
+
+	pb "mist-io/src/protos/v1/gen"
 )
 
 // ----- auth handlers -----
@@ -12,15 +12,15 @@ func (wsc *WsConnection) UpdateJwtToken(message *pb.Input_UpdateJwtToken) {
 }
 
 // ----- server handlers -----
-
 func (wsc *WsConnection) ServerListing(
 	message *pb.Input_ServerListing,
 ) ([]byte, error) {
+	// ) (int, error) {
 	ctx, cancel := wsc.SetupContext()
 	defer cancel()
 
-	response, err := pb.NewServerServiceClient(wsc.ClientConn).ListAppservers(
-		ctx, &pb.ListAppserversRequest{},
+	response, err := wsc.Client.GetServerClient().GetUserAppserverSubs(
+		ctx, &pb.GetUserAppserverSubsRequest{},
 	)
 
 	if err != nil {
@@ -30,7 +30,7 @@ func (wsc *WsConnection) ServerListing(
 
 	return proto.Marshal(&pb.Output{
 		Data: &pb.Output_ServerListing{
-			ServerListing: &pb.ServerListingResponse{Appservers: response.GetAppservers()},
+			ServerListing: &pb.GetUserAppserverSubsResponse{Appservers: response.GetAppservers()},
 		},
 	})
 }

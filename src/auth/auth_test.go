@@ -1,8 +1,9 @@
-package auth
+package auth_test
 
 import (
 	"context"
 	"fmt"
+	"mist-io/src/auth"
 	"os"
 	"testing"
 	"time"
@@ -16,8 +17,6 @@ import (
 
 type DummyRequest struct{}
 
-var mockHandler = func(ctx context.Context, req interface{}) (interface{}, error) { return req, nil }
-
 func TestAuthenticateRequest(t *testing.T) {
 	t.Run("valid_token", func(t *testing.T) {
 		// ARRANGE
@@ -28,12 +27,12 @@ func TestAuthenticateRequest(t *testing.T) {
 				secretKey: os.Getenv("MIST_API_JWT_SECRET_KEY"),
 			})
 
-		// Set the Authorization header in http.Header
+		// Set the authorization header in http.Header
 		queryValues := url.Values{}
-		queryValues.Add("Authorization", fmt.Sprintf("Bearer %s", tokenStr))
+		queryValues.Add("authorization", fmt.Sprintf("Bearer %s", tokenStr))
 
 		// ACT
-		tokenAndClaims, err := AuthenticateRequest(queryValues)
+		tokenAndClaims, err := auth.AuthenticateRequest(queryValues)
 
 		// ASSERT
 		assert.Nil(t, err)
@@ -49,12 +48,12 @@ func TestAuthenticateRequest(t *testing.T) {
 				secretKey: os.Getenv("MIST_API_JWT_SECRET_KEY"),
 			})
 
-		// Set the Authorization header in http.Header
+		// Set the authorization header in http.Header
 		queryValues := url.Values{}
-		queryValues.Add("Authorization", fmt.Sprintf("Bearer %s", tokenStr))
+		queryValues.Add("authorization", fmt.Sprintf("Bearer %s", tokenStr))
 
 		// ACT
-		tokenAndClaims, err := AuthenticateRequest(queryValues)
+		tokenAndClaims, err := auth.AuthenticateRequest(queryValues)
 
 		// ASSERT
 		assert.NotNil(t, err)
@@ -70,12 +69,12 @@ func TestAuthenticateRequest(t *testing.T) {
 				secretKey: os.Getenv("MIST_API_JWT_SECRET_KEY"),
 			})
 
-		// Set the Authorization header in http.Header
+		// Set the authorization header in http.Header
 		queryValues := url.Values{}
-		queryValues.Add("Authorization", fmt.Sprintf("Bearer %s", tokenStr))
+		queryValues.Add("authorization", fmt.Sprintf("Bearer %s", tokenStr))
 
 		// ACT
-		tokenAndClaims, err := AuthenticateRequest(queryValues)
+		tokenAndClaims, err := auth.AuthenticateRequest(queryValues)
 
 		// ASSERT
 		assert.NotNil(t, err)
@@ -92,12 +91,12 @@ func TestAuthenticateRequest(t *testing.T) {
 				secretKey: "wrong-secret-key",
 			})
 
-		// Set the Authorization header in http.Header
+		// Set the authorization header in http.Header
 		queryValues := url.Values{}
-		queryValues.Add("Authorization", fmt.Sprintf("Bearer %s", tokenStr))
+		queryValues.Add("authorization", fmt.Sprintf("Bearer %s", tokenStr))
 
 		// ACT
-		tokenAndClaims, err := AuthenticateRequest(queryValues)
+		tokenAndClaims, err := auth.AuthenticateRequest(queryValues)
 
 		// ASSERT
 		assert.NotNil(t, err)
@@ -108,10 +107,10 @@ func TestAuthenticateRequest(t *testing.T) {
 	t.Run("invalid_token_format", func(t *testing.T) {
 		// ARRANGE
 		queryValues := url.Values{}
-		queryValues.Add("Authorization", "Bearer bad_token")
+		queryValues.Add("authorization", "Bearer bad_token")
 
 		// ACT
-		tokenAndClaims, err := AuthenticateRequest(queryValues)
+		tokenAndClaims, err := auth.AuthenticateRequest(queryValues)
 
 		// ASSERT
 		assert.NotNil(t, err)
@@ -125,7 +124,7 @@ func TestAuthenticateRequest(t *testing.T) {
 		queryValues := url.Values{}
 
 		// ACT
-		tokenAndClaims, err := AuthenticateRequest(queryValues)
+		tokenAndClaims, err := auth.AuthenticateRequest(queryValues)
 
 		// ASSERT
 		assert.NotNil(t, err)
@@ -136,10 +135,10 @@ func TestAuthenticateRequest(t *testing.T) {
 	t.Run("invalid_authorization_bearer_header", func(t *testing.T) {
 		// ARRANGE
 		queryValues := url.Values{}
-		queryValues.Add("Authorization", "Bearer token_invalid")
+		queryValues.Add("authorization", "Bearer token_invalid")
 
 		// ACT
-		tokenAndClaims, err := AuthenticateRequest(queryValues)
+		tokenAndClaims, err := auth.AuthenticateRequest(queryValues)
 
 		// ASSERT
 		assert.NotNil(t, err)
@@ -150,10 +149,10 @@ func TestAuthenticateRequest(t *testing.T) {
 	t.Run("empty_authorization_bearer_header", func(t *testing.T) {
 		// ARRANGE
 		queryValues := url.Values{}
-		queryValues.Add("Authorization", "")
+		queryValues.Add("authorization", "")
 
 		// ACT
-		tokenAndClaims, err := AuthenticateRequest(queryValues)
+		tokenAndClaims, err := auth.AuthenticateRequest(queryValues)
 
 		// ASSERT
 		assert.NotNil(t, err)
@@ -174,10 +173,10 @@ func TestAuthenticateRequest(t *testing.T) {
 		tokenStr, err := token.SignedString([]byte(os.Getenv("MIST_API_JWT_SECRET_KEY")))
 
 		queryValues := url.Values{}
-		queryValues.Add("Authorization", fmt.Sprintf("Bearer %s", tokenStr))
+		queryValues.Add("authorization", fmt.Sprintf("Bearer %s", tokenStr))
 
 		// ACT
-		tokenAndClaims, err := AuthenticateRequest(queryValues)
+		tokenAndClaims, err := auth.AuthenticateRequest(queryValues)
 
 		// ASSERT
 		assert.NotNil(t, err)
@@ -188,7 +187,7 @@ func TestAuthenticateRequest(t *testing.T) {
 	t.Run("missing_header_errors", func(t *testing.T) {
 		// ARRANGE
 		// ACT
-		token, err := AuthenticateRequest(url.Values{})
+		token, err := auth.AuthenticateRequest(url.Values{})
 
 		// ASSERT
 		assert.NotNil(t, err)
@@ -200,7 +199,7 @@ func TestAuthenticateRequest(t *testing.T) {
 func TestGetJWTClaims(t *testing.T) {
 	t.Run("can_successfully_get_claims_from_context", func(t *testing.T) {
 		// ARRANGE
-		claims := &CustomJWTClaims{
+		claims := &auth.CustomJWTClaims{
 			RegisteredClaims: jwt.RegisteredClaims{
 				Issuer:   "dummy issuer",
 				Audience: jwt.ClaimStrings{"oo aud"},
@@ -211,10 +210,10 @@ func TestGetJWTClaims(t *testing.T) {
 			UserID: uuid.NewString(),
 		}
 		ctx := context.Background()
-		ctx = context.WithValue(ctx, JwtClaimsContextKey, claims)
+		ctx = context.WithValue(ctx, auth.JwtClaimsContextKey, claims)
 
 		// ACT
-		ctxClaims, err := GetJWTClaims(ctx)
+		ctxClaims, err := auth.GetJWTClaims(ctx)
 
 		// ASSERT
 		assert.NotNil(t, ctxClaims)
@@ -224,10 +223,10 @@ func TestGetJWTClaims(t *testing.T) {
 	t.Run("invalid_claims_return_error", func(t *testing.T) {
 		// ARRANGE
 		ctx := context.Background()
-		ctx = context.WithValue(ctx, JwtClaimsContextKey, "boom")
+		ctx = context.WithValue(ctx, auth.JwtClaimsContextKey, "boom")
 
 		// ACT
-		ctxClaims, err := GetJWTClaims(ctx)
+		ctxClaims, err := auth.GetJWTClaims(ctx)
 
 		// ASSERT
 		assert.Nil(t, ctxClaims)

@@ -1,17 +1,18 @@
-package server
+package ws
 
 import (
 	"fmt"
 	"log"
-	"mist-io/src/auth"
-	"mist-io/src/message"
 	"net/http"
 
 	"github.com/gorilla/websocket"
 	"google.golang.org/grpc"
+
+	"mist-io/src/auth"
+	"mist-io/src/message"
 )
 
-func wsHandler(upgrader *websocket.Upgrader, clientConn *grpc.ClientConn) func(w http.ResponseWriter, r *http.Request) {
+func WsHandler(upgrader *websocket.Upgrader, clientConn *grpc.ClientConn) func(w http.ResponseWriter, r *http.Request) {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		// First authenticate the request
 		// TODO: add more information about the user session
@@ -24,11 +25,6 @@ func wsHandler(upgrader *websocket.Upgrader, clientConn *grpc.ClientConn) func(w
 		}
 
 		fmt.Println("Establishing new connection...")
-
-		if err != nil {
-			http.Error(w, "Unable to establish  connection.", http.StatusBadRequest)
-			return
-		}
 
 		// Upgrade HTTP connection to WebSocket connection
 		conn, err := upgrader.Upgrade(w, r, nil)
@@ -43,17 +39,19 @@ func wsHandler(upgrader *websocket.Upgrader, clientConn *grpc.ClientConn) func(w
 		wsConnection := message.WsConnection{
 			Conn: conn,
 			// Mutex:    &sync.Mutex{}, // TBD if needed
-			JwtToken:   tokenAndClaims.Token,
-			Claims:     tokenAndClaims.Claims,
-			ClientConn: clientConn,
+			JwtToken: tokenAndClaims.Token,
+			Claims:   tokenAndClaims.Claims,
+			Client:   message.Client{Conn: clientConn},
 		}
 		wsConnection.Manage()
 	}
 	return handler
 }
+
 func AddHandlers(upgrader *websocket.Upgrader, clientConn *grpc.ClientConn) {
-	http.HandleFunc("/io", wsHandler(upgrader, clientConn))
+	http.HandleFunc("/io", WsHandler(upgrader, clientConn))
 }
+
 func Initialize(address string) {
 
 	log.Printf("Starting WebSocket server on %s", address)
