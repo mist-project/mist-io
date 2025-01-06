@@ -59,12 +59,16 @@ func (wsc *WsConnection) socketMessageHandler(message *pb.InputMessage, messageT
 		wsc.UpdateJwtToken(input)
 		return
 	case *pb.Input_AppserverListing:
-		fmt.Printf("<<< Server listing message\n")
+		fmt.Printf("<<< appserver listing message\n")
 		response, err = wsc.AppserverListing(input)
 
 	case *pb.Input_CreateAppserver:
-		fmt.Printf("<<< Server listing message\n")
+		fmt.Printf("<<< create appserver message\n")
 		response, err = wsc.CreateAppserver(input)
+
+	case *pb.Input_DeleteAppserver:
+		fmt.Printf("<<< delete listing message\n")
+		response, err = wsc.DeleteAppserver(input)
 
 	default:
 		fmt.Println("Unknown type")

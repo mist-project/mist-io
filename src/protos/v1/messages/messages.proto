@@ -34,6 +34,7 @@ message Input {
     UpdateJwtToken update_jwt_token = 1;
     AppserverListingRequest appserver_listing = 2;
     server.CreateAppserverRequest create_appserver = 3;
+    server.DeleteAppserverRequest delete_appserver = 4;
   }
 }
 

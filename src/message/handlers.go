@@ -1,8 +1,6 @@
 package message
 
 import (
-	"fmt"
-
 	"google.golang.org/protobuf/proto"
 
 	pb "mist-io/src/protos/v1/gen"
@@ -43,10 +41,43 @@ func (wsc *WsConnection) CreateAppserver(
 	defer cancel()
 
 	serverClient := wsc.Client.GetServerClient()
-	fmt.Printf("client %v\n", serverClient)
 
 	_, err := serverClient.CreateAppserver(
 		ctx, &pb.CreateAppserverRequest{Name: message.CreateAppserver.Name},
+	)
+
+	if err != nil {
+		// TODO: return notification of failure
+		return nil, err
+	}
+
+	// update all user listings
+	response, err := serverClient.GetUserAppserverSubs(
+		ctx, &pb.GetUserAppserverSubsRequest{},
+	)
+
+	if err != nil {
+		// TODO: raise error for logging
+		return nil, err
+	}
+
+	return proto.Marshal(&pb.Output{
+		Data: &pb.Output_AppserverListing{
+			AppserverListing: &pb.GetUserAppserverSubsResponse{Appservers: response.GetAppservers()},
+		},
+	})
+}
+
+func (wsc *WsConnection) DeleteAppserver(
+	message *pb.Input_DeleteAppserver,
+) ([]byte, error) {
+	ctx, cancel := wsc.SetupContext()
+	defer cancel()
+
+	serverClient := wsc.Client.GetServerClient()
+
+	_, err := serverClient.DeleteAppserver(
+		ctx, &pb.DeleteAppserverRequest{Id: message.DeleteAppserver.Id},
 	)
 
 	if err != nil {
