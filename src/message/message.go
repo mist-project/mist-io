@@ -55,12 +55,20 @@ func (wsc *WsConnection) socketMessageHandler(message *pb.InputMessage, messageT
 
 	switch input := message.Input.Data.(type) {
 	case *pb.Input_UpdateJwtToken:
-		fmt.Printf("JWT token message\n")
+		fmt.Printf("<<< JWT token message\n")
 		wsc.UpdateJwtToken(input)
 		return
-	case *pb.Input_ServerListing:
-		fmt.Printf("Server listing message\n")
-		response, err = wsc.ServerListing(input)
+	case *pb.Input_AppserverListing:
+		fmt.Printf("<<< appserver listing message\n")
+		response, err = wsc.AppserverListing(input)
+
+	case *pb.Input_CreateAppserver:
+		fmt.Printf("<<< create appserver message\n")
+		response, err = wsc.CreateAppserver(input)
+
+	case *pb.Input_DeleteAppserver:
+		fmt.Printf("<<< delete listing message\n")
+		response, err = wsc.DeleteAppserver(input)
 
 	default:
 		fmt.Println("Unknown type")
