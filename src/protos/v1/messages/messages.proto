@@ -50,6 +50,3 @@ message Output {
 
 // LISTING
 message AppserverListingRequest {}
-message ServerListingResponse {
-  repeated server.AppserverAndSub appservers = 1;
-}
