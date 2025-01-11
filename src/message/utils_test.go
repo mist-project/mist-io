@@ -20,5 +20,18 @@ func TestGetServerClient(t *testing.T) {
 
 	// ASSERT
 	assert.NotNil(t, serverClient)
+}
 
+func TestGetChannelClient(t *testing.T) {
+	// ARRANGE
+	mockConn := new(grpc.ClientConn)
+	client := message.Client{
+		Conn: mockConn,
+	}
+
+	// ACT
+	serverClient := client.GetChannelClient()
+
+	// ASSERT
+	assert.NotNil(t, serverClient)
 }

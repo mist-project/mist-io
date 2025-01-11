@@ -58,10 +58,15 @@ func (wsc *WsConnection) socketMessageHandler(message *pb.InputMessage, messageT
 		fmt.Printf("<<< JWT token message\n")
 		wsc.UpdateJwtToken(input)
 		return
+
+		// ----- appserver -----
 	case *pb.Input_AppserverListing:
 		fmt.Printf("<<< appserver listing message\n")
 		response, err = wsc.AppserverListing(input)
 
+	case *pb.Input_AppserverDetails:
+		fmt.Printf("<<< appserver details message\n")
+		response, err = wsc.AppserverDetails(input)
 	case *pb.Input_CreateAppserver:
 		fmt.Printf("<<< create appserver message\n")
 		response, err = wsc.CreateAppserver(input)
@@ -70,6 +75,12 @@ func (wsc *WsConnection) socketMessageHandler(message *pb.InputMessage, messageT
 		fmt.Printf("<<< delete listing message\n")
 		response, err = wsc.DeleteAppserver(input)
 
+		// ----- channel -----
+
+	case *pb.Input_CreateChannel:
+		fmt.Printf("<<< create appserver message\n")
+		err = wsc.CreateChannel(input)
+		return
 	default:
 		fmt.Println("Unknown type")
 	}

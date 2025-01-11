@@ -2,13 +2,15 @@ package message_test
 
 import (
 	"errors"
-	"mist-io/src/message"
-	pb "mist-io/src/protos/v1/gen"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/proto"
+
+	"mist-io/src/message"
+	pb "mist-io/src/protos/v1/gen"
 )
 
 func TestUpdateJwtToken(t *testing.T) {
@@ -78,6 +80,59 @@ func TestAppserverListing(t *testing.T) {
 
 		// ACT
 		response, err := wsc.AppserverListing(&pb.Input_AppserverListing{})
+
+		// ASSERT
+		assert.NotNil(t, err)
+		assert.Nil(t, response)
+	})
+}
+
+func TestAppserverDetails(t *testing.T) {
+	t.Run("is_successful", func(t *testing.T) {
+		// ARRANGE
+		server1 := "foo"
+		appserverId := uuid.NewString()
+		mockResponse := &pb.GetByIdAppserverResponse{}
+		mockResponse.Appserver = &pb.Appserver{Name: server1}
+		mockService := new(MockService)
+		mockService.On(
+			"GetByIdAppserver", mock.Anything, &pb.GetByIdAppserverRequest{Id: appserverId}).Return(mockResponse, nil)
+
+		mockClient := new(MockClient)
+		mockClient.On("GetServerClient").Return(mockService)
+
+		wsc := &message.WsConnection{Client: mockClient}
+
+		// ACT
+		response, err := wsc.AppserverDetails(
+			&pb.Input_AppserverDetails{AppserverDetails: &pb.GetByIdAppserverRequest{Id: appserverId}})
+
+		// ASSERT
+		assert.Nil(t, err)
+		mockClient.AssertExpectations(t)
+
+		output := &pb.Output{}
+		err = proto.Unmarshal(response, output)
+		appserver := output.Data.(*pb.Output_AppserverDetails).AppserverDetails.Appserver
+
+		assert.Nil(t, err)
+		assert.Equal(t, appserver.Name, server1)
+	})
+
+	t.Run("on_error_returns_error", func(t *testing.T) {
+		// ARRANGE
+		mockService := new(MockService)
+		mockResponse := &pb.GetByIdAppserverResponse{}
+		mockService.On("GetByIdAppserver", mock.Anything, mock.Anything).Return(mockResponse, errors.New("boom"))
+
+		mockClient := new(MockClient)
+		mockClient.On("GetServerClient").Return(mockService)
+
+		wsc := &message.WsConnection{Client: mockClient}
+
+		// ACT
+		response, err := wsc.AppserverDetails(
+			&pb.Input_AppserverDetails{AppserverDetails: &pb.GetByIdAppserverRequest{Id: uuid.NewString()}})
 
 		// ASSERT
 		assert.NotNil(t, err)

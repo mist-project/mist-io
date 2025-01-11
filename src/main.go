@@ -24,6 +24,7 @@ func main() {
 		os.Getenv("MIST_BACKEND_APP_URL"),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
+	defer clientConn.Close()
 
 	if err != nil {
 		log.Panicf("Error communicating with backend service: %v", err)

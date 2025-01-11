@@ -21,6 +21,11 @@ func (m *MockClient) GetServerClient() pb.ServerServiceClient {
 	return args.Get(0).(pb.ServerServiceClient)
 }
 
+func (m *MockClient) GetChannelClient() pb.ChannelServiceClient {
+	args := m.Called()
+	return args.Get(0).(pb.ChannelServiceClient)
+}
+
 // ----- GRPC MOCKS ----
 func (m *MockService) CreateAppserver(ctx context.Context, in *pb.CreateAppserverRequest, opts ...grpc.CallOption,
 ) (*pb.CreateAppserverResponse, error) {

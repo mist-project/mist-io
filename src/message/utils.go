@@ -24,6 +24,7 @@ func (wsc *WsConnection) SetupContext() (context.Context, context.CancelFunc) {
 
 type GrpcClient interface {
 	GetServerClient() pb.ServerServiceClient
+	GetChannelClient() pb.ChannelServiceClient
 }
 
 type Client struct {
@@ -32,4 +33,8 @@ type Client struct {
 
 func (c Client) GetServerClient() pb.ServerServiceClient {
 	return pb.NewServerServiceClient(c.Conn)
+}
+
+func (c Client) GetChannelClient() pb.ChannelServiceClient {
+	return pb.NewChannelServiceClient(c.Conn)
 }

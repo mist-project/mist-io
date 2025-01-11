@@ -1,6 +1,8 @@
 package message
 
 import (
+	"fmt"
+
 	"google.golang.org/protobuf/proto"
 
 	pb "mist-io/src/protos/v1/gen"
@@ -34,15 +36,37 @@ func (wsc *WsConnection) AppserverListing(
 	})
 }
 
+func (wsc *WsConnection) AppserverDetails(
+	message *pb.Input_AppserverDetails,
+) ([]byte, error) {
+	ctx, cancel := wsc.SetupContext()
+	defer cancel()
+
+	response, err := wsc.Client.GetServerClient().GetByIdAppserver(
+		ctx, &pb.GetByIdAppserverRequest{Id: message.AppserverDetails.Id},
+	)
+
+	if err != nil {
+		// TODO: improve this error handling
+		return nil, err
+	}
+
+	return proto.Marshal(&pb.Output{
+		Data: &pb.Output_AppserverDetails{
+			AppserverDetails: &pb.GetByIdAppserverResponse{Appserver: response.GetAppserver()},
+		},
+	})
+}
+
 func (wsc *WsConnection) CreateAppserver(
 	message *pb.Input_CreateAppserver,
 ) ([]byte, error) {
 	ctx, cancel := wsc.SetupContext()
 	defer cancel()
 
-	serverClient := wsc.Client.GetServerClient()
+	sClient := wsc.Client.GetServerClient()
 
-	_, err := serverClient.CreateAppserver(
+	_, err := sClient.CreateAppserver(
 		ctx, &pb.CreateAppserverRequest{Name: message.CreateAppserver.Name},
 	)
 
@@ -52,7 +76,7 @@ func (wsc *WsConnection) CreateAppserver(
 	}
 
 	// update all user listings
-	response, err := serverClient.GetUserAppserverSubs(
+	response, err := sClient.GetUserAppserverSubs(
 		ctx, &pb.GetUserAppserverSubsRequest{},
 	)
 
@@ -74,9 +98,9 @@ func (wsc *WsConnection) DeleteAppserver(
 	ctx, cancel := wsc.SetupContext()
 	defer cancel()
 
-	serverClient := wsc.Client.GetServerClient()
+	sClient := wsc.Client.GetServerClient()
 
-	_, err := serverClient.DeleteAppserver(
+	_, err := sClient.DeleteAppserver(
 		ctx, &pb.DeleteAppserverRequest{Id: message.DeleteAppserver.Id},
 	)
 
@@ -86,7 +110,7 @@ func (wsc *WsConnection) DeleteAppserver(
 	}
 
 	// update all user listings
-	response, err := serverClient.GetUserAppserverSubs(
+	response, err := sClient.GetUserAppserverSubs(
 		ctx, &pb.GetUserAppserverSubsRequest{},
 	)
 
@@ -100,4 +124,23 @@ func (wsc *WsConnection) DeleteAppserver(
 			AppserverListing: &pb.GetUserAppserverSubsResponse{Appservers: response.GetAppservers()},
 		},
 	})
+}
+
+func (wsc *WsConnection) CreateChannel(message *pb.Input_CreateChannel) error {
+	ctx, cancel := wsc.SetupContext()
+	defer cancel()
+
+	cClient := wsc.Client.GetChannelClient()
+	_, err := cClient.CreateChannel(
+		ctx, &pb.CreateChannelRequest{
+			Name: message.CreateChannel.Name, AppserverId: message.CreateChannel.AppserverId},
+	)
+
+	if err != nil {
+		// TODO: return notification of failure
+		fmt.Printf("error: %v\n", err)
+		return err
+	}
+
+	return nil
 }
