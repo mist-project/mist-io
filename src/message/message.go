@@ -79,8 +79,10 @@ func (wsc *WsConnection) socketMessageHandler(message *pb.InputMessage, messageT
 
 	case *pb.Input_CreateChannel:
 		fmt.Printf("<<< create appserver message\n")
-		err = wsc.CreateChannel(input)
-		return
+		response, err = wsc.CreateChannel(input)
+	case *pb.Input_ChannelListing:
+		fmt.Printf("<<< channel listing message\n")
+		response, err = wsc.ChanneListing(input)
 	default:
 		fmt.Println("Unknown type")
 	}

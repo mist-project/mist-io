@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	pb "mist-io/src/protos/v1/gen"
 )
@@ -126,7 +127,8 @@ func (wsc *WsConnection) DeleteAppserver(
 	})
 }
 
-func (wsc *WsConnection) CreateChannel(message *pb.Input_CreateChannel) error {
+// ----- CHANNEL handlers -----
+func (wsc *WsConnection) CreateChannel(message *pb.Input_CreateChannel) ([]byte, error) {
 	ctx, cancel := wsc.SetupContext()
 	defer cancel()
 
@@ -136,11 +138,41 @@ func (wsc *WsConnection) CreateChannel(message *pb.Input_CreateChannel) error {
 			Name: message.CreateChannel.Name, AppserverId: message.CreateChannel.AppserverId},
 	)
 
+	response, err := wsc.Client.GetChannelClient().ListChannels(
+		ctx, &pb.ListChannelsRequest{AppserverId: &wrapperspb.StringValue{Value: message.CreateChannel.AppserverId}},
+	)
+
 	if err != nil {
 		// TODO: return notification of failure
 		fmt.Printf("error: %v\n", err)
-		return err
+		return nil, err
 	}
 
-	return nil
+	return proto.Marshal(&pb.Output{
+		Data: &pb.Output_ChannelListing{
+			ChannelListing: &pb.ListChannelsResponse{Channels: response.GetChannels()},
+		},
+	})
+}
+
+func (wsc *WsConnection) ChanneListing(
+	message *pb.Input_ChannelListing,
+) ([]byte, error) {
+	ctx, cancel := wsc.SetupContext()
+	defer cancel()
+
+	response, err := wsc.Client.GetChannelClient().ListChannels(
+		ctx, &pb.ListChannelsRequest{AppserverId: message.ChannelListing.AppserverId, Name: message.ChannelListing.Name},
+	)
+
+	if err != nil {
+		// TODO: improve this error handling
+		return nil, err
+	}
+
+	return proto.Marshal(&pb.Output{
+		Data: &pb.Output_ChannelListing{
+			ChannelListing: &pb.ListChannelsResponse{Channels: response.GetChannels()},
+		},
+	})
 }

@@ -40,6 +40,7 @@ message Input {
     server.DeleteAppserverRequest delete_appserver = 5;
 
     channel.CreateChannelRequest create_channel = 6;
+    channel.ListChannelsRequest channel_listing = 7;
   }
 }
 
@@ -50,6 +51,8 @@ message Output {
   oneof data {
     server.GetUserAppserverSubsResponse appserver_listing = 1;
     server.GetByIdAppserverResponse appserver_details = 2;
+
+    channel.ListChannelsResponse channel_listing = 3;
   }
 }
 

@@ -95,3 +95,28 @@ func (m *MockService) DeleteAppserverRoleSub(ctx context.Context, in *pb.DeleteA
 	args := m.Called(ctx, in)
 	return args.Get(0).(*pb.DeleteAppserverRoleSubResponse), args.Error(1)
 }
+
+// ----- CHANNEL -----
+func (m *MockService) CreateChannel(ctx context.Context, in *pb.CreateChannelRequest, opts ...grpc.CallOption,
+) (*pb.CreateChannelResponse, error) {
+	args := m.Called(ctx, in)
+	return args.Get(0).(*pb.CreateChannelResponse), args.Error(1)
+}
+
+func (m *MockService) ListChannels(ctx context.Context, in *pb.ListChannelsRequest, opts ...grpc.CallOption,
+) (*pb.ListChannelsResponse, error) {
+	args := m.Called(ctx, in)
+	return args.Get(0).(*pb.ListChannelsResponse), args.Error(1)
+}
+
+func (m *MockService) DeleteChannel(ctx context.Context, in *pb.DeleteChannelRequest, opts ...grpc.CallOption,
+) (*pb.DeleteChannelResponse, error) {
+	args := m.Called(ctx, in)
+	return args.Get(0).(*pb.DeleteChannelResponse), args.Error(1)
+}
+
+func (m *MockService) GetByIdChannel(ctx context.Context, in *pb.GetByIdChannelRequest, opts ...grpc.CallOption,
+) (*pb.GetByIdChannelResponse, error) {
+	args := m.Called(ctx, in)
+	return args.Get(0).(*pb.GetByIdChannelResponse), args.Error(1)
+}

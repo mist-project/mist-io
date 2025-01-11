@@ -8,11 +8,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"mist-io/src/message"
 	pb "mist-io/src/protos/v1/gen"
 )
 
+// ---- UpdateJWT -----
 func TestUpdateJwtToken(t *testing.T) {
 	t.Run("successfully_updates_wsc_token", func(t *testing.T) {
 		// ARRANGE
@@ -32,6 +34,7 @@ func TestUpdateJwtToken(t *testing.T) {
 	})
 }
 
+// ---- APPSERVER -----
 func TestAppserverListing(t *testing.T) {
 	t.Run("is_successful", func(t *testing.T) {
 		// ARRANGE
@@ -140,7 +143,7 @@ func TestAppserverDetails(t *testing.T) {
 	})
 }
 
-func TestAppserverCreate(t *testing.T) {
+func TestCreateAppserver(t *testing.T) {
 	t.Run("is_successful", func(t *testing.T) {
 		// ARRANGE
 		newserver := "new"
@@ -227,7 +230,7 @@ func TestAppserverCreate(t *testing.T) {
 	})
 }
 
-func TestAppserverDelete(t *testing.T) {
+func TestDeleteAppserver(t *testing.T) {
 	t.Run("is_successful", func(t *testing.T) {
 		// ARRANGE
 		someid := "someid"
@@ -308,6 +311,158 @@ func TestAppserverDelete(t *testing.T) {
 		response, err := wsc.DeleteAppserver(
 			&pb.Input_DeleteAppserver{DeleteAppserver: mockDeleteRequest},
 		)
+
+		// ASSERT
+		assert.NotNil(t, err)
+		assert.Nil(t, response)
+	})
+}
+
+// ---- CHANNEL -----
+func TestCreateChannel(t *testing.T) {
+	t.Run("is_successful", func(t *testing.T) {
+		// ARRANGE
+		newChannel := "new"
+		appserverId := uuid.NewString()
+		server1 := "foo"
+		server2 := "bar"
+		mockCreateRequest := &pb.CreateChannelRequest{Name: newChannel, AppserverId: appserverId}
+		mockCreateResponse := &pb.CreateChannelResponse{}
+		listRequestMock := &pb.ListChannelsRequest{AppserverId: &wrapperspb.StringValue{Value: appserverId}}
+		mockResponse := &pb.ListChannelsResponse{}
+		mockResponse.Channels = []*pb.Channel{
+			&pb.Channel{Name: server1},
+			&pb.Channel{Name: server2},
+		}
+		mockService := new(MockService)
+		mockService.On(
+			"CreateChannel", mock.Anything, mockCreateRequest,
+		).Return(mockCreateResponse, nil)
+		mockService.On("ListChannels", mock.Anything, listRequestMock).Return(mockResponse, nil)
+
+		mockClient := new(MockClient)
+		mockClient.On("GetChannelClient").Return(mockService)
+
+		wsc := &message.WsConnection{Client: mockClient}
+
+		// ACT
+		response, err := wsc.CreateChannel(
+			&pb.Input_CreateChannel{CreateChannel: mockCreateRequest},
+		)
+
+		// ASSERT
+		assert.Nil(t, err)
+		mockClient.AssertExpectations(t)
+
+		output := &pb.Output{}
+		err = proto.Unmarshal(response, output)
+		channels := output.Data.(*pb.Output_ChannelListing).ChannelListing.Channels
+
+		assert.Nil(t, err)
+		assert.Equal(t, channels[0].Name, server1)
+		assert.Equal(t, channels[1].Name, server2)
+	})
+
+	t.Run("on_error_when_creating_returns_error", func(t *testing.T) {
+		// ARRANGE
+		s := "serverid"
+		mockService := new(MockService)
+		mockCreateRequest := &pb.CreateChannelRequest{Name: "boom", AppserverId: s}
+		mockResponse := &pb.CreateChannelResponse{}
+		listRequestMock := &pb.ListChannelsRequest{AppserverId: &wrapperspb.StringValue{Value: s}}
+		listResponseMock := &pb.ListChannelsResponse{}
+		mockService.On("CreateChannel", mock.Anything, mockCreateRequest).Return(mockResponse, errors.New("boom"))
+		mockService.On("ListChannels", mock.Anything, listRequestMock).Return(listResponseMock, errors.New("boom"))
+
+		mockClient := new(MockClient)
+		mockClient.On("GetChannelClient").Return(mockService)
+
+		wsc := &message.WsConnection{Client: mockClient}
+
+		// ACT
+		response, err := wsc.CreateChannel(&pb.Input_CreateChannel{CreateChannel: mockCreateRequest})
+
+		// ASSERT
+		assert.NotNil(t, err)
+		assert.Nil(t, response)
+	})
+
+	t.Run("on_error_when_fetching_subs_returns_error", func(t *testing.T) {
+		// ARRANGE
+		s := "serverid"
+		mockService := new(MockService)
+		mockCreateRequest := &pb.CreateChannelRequest{Name: "boom", AppserverId: s}
+		mockResponse := &pb.CreateChannelResponse{}
+		listRequestMock := &pb.ListChannelsRequest{AppserverId: &wrapperspb.StringValue{Value: s}}
+		listResponseMock := &pb.ListChannelsResponse{}
+		mockService.On("CreateChannel", mock.Anything, mockCreateRequest).Return(mockResponse, nil)
+		mockService.On("ListChannels", mock.Anything, listRequestMock).Return(listResponseMock, errors.New("boom"))
+
+		mockClient := new(MockClient)
+		mockClient.On("GetChannelClient").Return(mockService)
+
+		wsc := &message.WsConnection{Client: mockClient}
+
+		// ACT
+		response, err := wsc.CreateChannel(&pb.Input_CreateChannel{CreateChannel: mockCreateRequest})
+
+		// ASSERT
+		assert.NotNil(t, err)
+		assert.Nil(t, response)
+	})
+}
+
+func TestChannelListing(t *testing.T) {
+	t.Run("is_successful", func(t *testing.T) {
+		// ARRANGE
+		ch1 := "ch1"
+		ch2 := "ch2"
+		mockRequest := &pb.ListChannelsRequest{
+			AppserverId: &wrapperspb.StringValue{Value: "foo"}, Name: &wrapperspb.StringValue{Value: "name"}}
+		mockResponse := &pb.ListChannelsResponse{}
+		mockResponse.Channels = []*pb.Channel{
+			{Name: ch1},
+			{Name: ch2},
+		}
+		mockService := new(MockService)
+		mockService.On("ListChannels", mock.Anything, mockRequest).Return(mockResponse, nil)
+
+		mockClient := new(MockClient)
+		mockClient.On("GetChannelClient").Return(mockService)
+
+		wsc := &message.WsConnection{Client: mockClient}
+
+		// ACT
+		response, err := wsc.ChanneListing(&pb.Input_ChannelListing{ChannelListing: mockRequest})
+
+		// ASSERT
+		assert.Nil(t, err)
+		mockClient.AssertExpectations(t)
+
+		output := &pb.Output{}
+		err = proto.Unmarshal(response, output)
+		channels := output.Data.(*pb.Output_ChannelListing).ChannelListing.Channels
+
+		assert.Nil(t, err)
+		assert.Equal(t, channels[0].Name, ch1)
+		assert.Equal(t, channels[1].Name, ch2)
+	})
+
+	t.Run("on_error_returns_error", func(t *testing.T) {
+		// ARRANGE
+		mockService := new(MockService)
+		mockRequest := &pb.ListChannelsRequest{
+			AppserverId: &wrapperspb.StringValue{Value: "foo"}, Name: &wrapperspb.StringValue{Value: "name"}}
+		mockResponse := &pb.ListChannelsResponse{}
+		mockService.On("ListChannels", mock.Anything, mockRequest).Return(mockResponse, errors.New("boom"))
+
+		mockClient := new(MockClient)
+		mockClient.On("GetChannelClient").Return(mockService)
+
+		wsc := &message.WsConnection{Client: mockClient}
+
+		// ACT
+		response, err := wsc.ChanneListing(&pb.Input_ChannelListing{ChannelListing: mockRequest})
 
 		// ASSERT
 		assert.NotNil(t, err)
