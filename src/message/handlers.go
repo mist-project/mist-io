@@ -15,9 +15,7 @@ func (wsc *WsConnection) UpdateJwtToken(message *pb.Input_UpdateJwtToken) {
 }
 
 // ----- server handlers -----
-func (wsc *WsConnection) AppserverListing(
-	message *pb.Input_AppserverListing,
-) ([]byte, error) {
+func (wsc *WsConnection) AppserverListing(message *pb.Input_AppserverListing) ([]byte, error) {
 	ctx, cancel := wsc.SetupContext()
 	defer cancel()
 
@@ -37,9 +35,7 @@ func (wsc *WsConnection) AppserverListing(
 	})
 }
 
-func (wsc *WsConnection) AppserverDetails(
-	message *pb.Input_AppserverDetails,
-) ([]byte, error) {
+func (wsc *WsConnection) AppserverDetails(message *pb.Input_AppserverDetails) ([]byte, error) {
 	ctx, cancel := wsc.SetupContext()
 	defer cancel()
 
@@ -59,9 +55,7 @@ func (wsc *WsConnection) AppserverDetails(
 	})
 }
 
-func (wsc *WsConnection) CreateAppserver(
-	message *pb.Input_CreateAppserver,
-) ([]byte, error) {
+func (wsc *WsConnection) CreateAppserver(message *pb.Input_CreateAppserver) ([]byte, error) {
 	ctx, cancel := wsc.SetupContext()
 	defer cancel()
 
@@ -76,7 +70,7 @@ func (wsc *WsConnection) CreateAppserver(
 		return nil, err
 	}
 
-	// update all user listings
+	// get all user listings ( to be used on initial load )
 	response, err := sClient.GetUserAppserverSubs(
 		ctx, &pb.GetUserAppserverSubsRequest{},
 	)
@@ -93,9 +87,7 @@ func (wsc *WsConnection) CreateAppserver(
 	})
 }
 
-func (wsc *WsConnection) DeleteAppserver(
-	message *pb.Input_DeleteAppserver,
-) ([]byte, error) {
+func (wsc *WsConnection) DeleteAppserver(message *pb.Input_DeleteAppserver) ([]byte, error) {
 	ctx, cancel := wsc.SetupContext()
 	defer cancel()
 
@@ -110,13 +102,44 @@ func (wsc *WsConnection) DeleteAppserver(
 		return nil, err
 	}
 
-	// update all user listings
+	// TODO: replace for individual appserver remove to all serversubs
 	response, err := sClient.GetUserAppserverSubs(
 		ctx, &pb.GetUserAppserverSubsRequest{},
 	)
 
 	if err != nil {
 		// TODO: raise error for logging
+		return nil, err
+	}
+
+	return proto.Marshal(&pb.Output{
+		Data: &pb.Output_AppserverListing{
+			AppserverListing: &pb.GetUserAppserverSubsResponse{Appservers: response.GetAppservers()},
+		},
+	})
+}
+
+func (wsc *WsConnection) JoinAppserver(message *pb.Input_JoinAppserver) ([]byte, error) {
+	ctx, cancel := wsc.SetupContext()
+	defer cancel()
+
+	sClient := wsc.Client.GetServerClient()
+
+	_, err := sClient.CreateAppserverSub(
+		ctx, &pb.CreateAppserverSubRequest{AppserverId: message.JoinAppserver.AppserverId},
+	)
+
+	if err != nil {
+		// TODO: raise error for logging
+		return nil, err
+	}
+
+	response, err := sClient.GetUserAppserverSubs(
+		ctx, &pb.GetUserAppserverSubsRequest{},
+	)
+
+	if err != nil {
+		// TODO: improve this error handling
 		return nil, err
 	}
 
@@ -155,9 +178,7 @@ func (wsc *WsConnection) CreateChannel(message *pb.Input_CreateChannel) ([]byte,
 	})
 }
 
-func (wsc *WsConnection) ChanneListing(
-	message *pb.Input_ChannelListing,
-) ([]byte, error) {
+func (wsc *WsConnection) ChanneListing(message *pb.Input_ChannelListing) ([]byte, error) {
 	ctx, cancel := wsc.SetupContext()
 	defer cancel()
 

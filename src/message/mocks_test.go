@@ -16,9 +16,9 @@ type MockClient struct {
 type MockService struct{ mock.Mock }
 
 // ----- MESSAGES MOCKS -----
-func (m *MockClient) GetServerClient() pb.ServerServiceClient {
+func (m *MockClient) GetServerClient() pb.AppserverServiceClient {
 	args := m.Called()
-	return args.Get(0).(pb.ServerServiceClient)
+	return args.Get(0).(pb.AppserverServiceClient)
 }
 
 func (m *MockClient) GetChannelClient() pb.ChannelServiceClient {

@@ -318,6 +318,102 @@ func TestDeleteAppserver(t *testing.T) {
 	})
 }
 
+func TestJoinAppserver(t *testing.T) {
+	t.Run("is_successful", func(t *testing.T) {
+		// ARRANGE
+		server1 := "s1"
+
+		mockRequest := &pb.CreateAppserverSubRequest{AppserverId: "someid"}
+		mockResponse := &pb.CreateAppserverSubResponse{}
+
+		mockSubs := &pb.GetUserAppserverSubsResponse{}
+		mockSubs.Appservers = []*pb.AppserverAndSub{
+			{Appserver: &pb.Appserver{Name: server1}},
+		}
+
+		mockService := new(MockService)
+		mockService.On(
+			"GetUserAppserverSubs", mock.Anything, mock.Anything,
+		).Return(mockSubs, nil)
+		mockService.On("CreateAppserverSub", mock.Anything, mock.Anything).Return(mockResponse, nil)
+
+		mockClient := new(MockClient)
+		mockClient.On("GetServerClient").Return(mockService)
+
+		wsc := &message.WsConnection{Client: mockClient}
+
+		// ACT
+		response, err := wsc.JoinAppserver(
+			&pb.Input_JoinAppserver{JoinAppserver: mockRequest},
+		)
+
+		// ASSERT
+		assert.Nil(t, err)
+		mockClient.AssertExpectations(t)
+
+		output := &pb.Output{}
+		err = proto.Unmarshal(response, output)
+		appservers := output.Data.(*pb.Output_AppserverListing).AppserverListing.Appservers
+
+		assert.Nil(t, err)
+		assert.Equal(t, appservers[0].Appserver.Name, server1)
+	})
+
+	t.Run("on_error_when_creating_returns_error", func(t *testing.T) {
+		// ARRANGE
+		mockService := new(MockService)
+
+		mockRequest := &pb.CreateAppserverSubRequest{AppserverId: "someid"}
+		mockResponse := &pb.CreateAppserverSubResponse{}
+
+		mockSubs := &pb.GetUserAppserverSubsResponse{}
+
+		mockService.On("CreateAppserverSub", mock.Anything, mock.Anything).Return(mockResponse, errors.New("boom"))
+		mockService.On("GetUserAppserverSubs", mock.Anything, mock.Anything).Return(mockSubs, errors.New("boom"))
+
+		mockClient := new(MockClient)
+		mockClient.On("GetServerClient").Return(mockService)
+
+		wsc := &message.WsConnection{Client: mockClient}
+
+		// ACT
+		response, err := wsc.JoinAppserver(
+			&pb.Input_JoinAppserver{JoinAppserver: mockRequest},
+		)
+
+		// ASSERT
+		assert.NotNil(t, err)
+		assert.Nil(t, response)
+	})
+
+	t.Run("on_error_when_fetching_subs_returns_error", func(t *testing.T) {
+		// ARRANGE
+		mockService := new(MockService)
+
+		mockRequest := &pb.CreateAppserverSubRequest{AppserverId: "someid"}
+		mockResponse := &pb.CreateAppserverSubResponse{}
+
+		mockSubs := &pb.GetUserAppserverSubsResponse{}
+
+		mockService.On("CreateAppserverSub", mock.Anything, mock.Anything).Return(mockResponse, nil)
+		mockService.On("GetUserAppserverSubs", mock.Anything, mock.Anything).Return(mockSubs, errors.New("boom"))
+
+		mockClient := new(MockClient)
+		mockClient.On("GetServerClient").Return(mockService)
+
+		wsc := &message.WsConnection{Client: mockClient}
+
+		// ACT
+		response, err := wsc.JoinAppserver(
+			&pb.Input_JoinAppserver{JoinAppserver: mockRequest},
+		)
+
+		// ASSERT
+		assert.NotNil(t, err)
+		assert.Nil(t, response)
+	})
+}
+
 // ---- CHANNEL -----
 func TestCreateChannel(t *testing.T) {
 	t.Run("is_successful", func(t *testing.T) {
@@ -331,8 +427,8 @@ func TestCreateChannel(t *testing.T) {
 		listRequestMock := &pb.ListChannelsRequest{AppserverId: &wrapperspb.StringValue{Value: appserverId}}
 		mockResponse := &pb.ListChannelsResponse{}
 		mockResponse.Channels = []*pb.Channel{
-			&pb.Channel{Name: server1},
-			&pb.Channel{Name: server2},
+			{Name: server1},
+			{Name: server2},
 		}
 		mockService := new(MockService)
 		mockService.On(

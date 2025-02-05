@@ -75,8 +75,12 @@ func (wsc *WsConnection) socketMessageHandler(message *pb.InputMessage, messageT
 		fmt.Printf("<<< delete listing message\n")
 		response, err = wsc.DeleteAppserver(input)
 
-		// ----- channel -----
+	// appserver sub
+	case *pb.Input_JoinAppserver:
+		fmt.Printf("<<< Join app server\n")
+		response, err = wsc.JoinAppserver(input)
 
+	// ----- channel -----
 	case *pb.Input_CreateChannel:
 		fmt.Printf("<<< create appserver message\n")
 		response, err = wsc.CreateChannel(input)

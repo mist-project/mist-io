@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 import "channel.proto";
-import "server.proto";
+import "appserver.proto";
 package v1.messages;
 
 option go_package = "/protos";
@@ -35,12 +35,14 @@ message Input {
     UpdateJwtToken update_jwt_token = 1;
 
     AppserverListingRequest appserver_listing = 2;
-    server.GetByIdAppserverRequest appserver_details = 3;
-    server.CreateAppserverRequest create_appserver = 4;
-    server.DeleteAppserverRequest delete_appserver = 5;
+    appserver.GetByIdAppserverRequest appserver_details = 3;
+    appserver.CreateAppserverRequest create_appserver = 4;
+    appserver.DeleteAppserverRequest delete_appserver = 5;
 
     channel.CreateChannelRequest create_channel = 6;
     channel.ListChannelsRequest channel_listing = 7;
+
+    appserver.CreateAppserverSubRequest join_appserver = 8;
   }
 }
 
@@ -49,10 +51,15 @@ message UpdateJwtToken { string access = 1; }
 // ----- OUTPUT -----
 message Output {
   oneof data {
-    server.GetUserAppserverSubsResponse appserver_listing = 1;
-    server.GetByIdAppserverResponse appserver_details = 2;
+    appserver.GetUserAppserverSubsResponse appserver_listing = 1;
+    appserver.GetByIdAppserverResponse appserver_details = 2;
 
     channel.ListChannelsResponse channel_listing = 3;
+    appserver.Appserver update_add_appserver = 4;
+    string update_remove_appserver = 5;
+
+    channel.Channel update_new_channel = 6;
+    channel.Channel update_delete_channel = 7;
   }
 }
 

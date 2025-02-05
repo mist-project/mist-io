@@ -3,10 +3,10 @@ syntax = "proto3";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 
-package v1.server;
+package v1.appserver;
 option go_package = "/protos";
 
-service ServerService {
+service AppserverService {
   // ----- APPSERVER ----
   rpc CreateAppserver(CreateAppserverRequest)
       returns (CreateAppserverResponse) {}
