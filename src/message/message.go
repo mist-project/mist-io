@@ -75,11 +75,19 @@ func (wsc *WsConnection) socketMessageHandler(message *pb.InputMessage, messageT
 		fmt.Printf("<<< delete listing message\n")
 		response, err = wsc.DeleteAppserver(input)
 
-	// appserver sub
+	// ----- appserver sub -----
 	case *pb.Input_JoinAppserver:
 		fmt.Printf("<<< Join app server\n")
 		response, err = wsc.JoinAppserver(input)
 
+		// ----- appserver role -----
+	case *pb.Input_CreateAppserverRole:
+		fmt.Printf("<<< Create appserver role	\n")
+		response, err = wsc.CreateAppserverRole(input)
+
+	case *pb.Input_AppserverRoleListing:
+		fmt.Printf("<<< Get appserver role listing\n")
+		response, err = wsc.AppserverRoleListing(input)
 	// ----- channel -----
 	case *pb.Input_CreateChannel:
 		fmt.Printf("<<< create appserver message\n")

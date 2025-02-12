@@ -39,9 +39,16 @@ func (wsc *WsConnection) AppserverDetails(message *pb.Input_AppserverDetails) ([
 	ctx, cancel := wsc.SetupContext()
 	defer cancel()
 
-	response, err := wsc.Client.GetServerClient().GetByIdAppserver(
+	sClient := wsc.Client.GetServerClient()
+
+	appserver, err := sClient.GetByIdAppserver(
 		ctx, &pb.GetByIdAppserverRequest{Id: message.AppserverDetails.Id},
 	)
+
+	// TODO: add roles to the details response later
+	// roles, err := sClient.GetAllAppserverRoles(
+	// 	ctx, &pb.GetAllAppserverRolesRequest{AppserverId: message.AppserverDetails.Id},
+	// )
 
 	if err != nil {
 		// TODO: improve this error handling
@@ -50,7 +57,7 @@ func (wsc *WsConnection) AppserverDetails(message *pb.Input_AppserverDetails) ([
 
 	return proto.Marshal(&pb.Output{
 		Data: &pb.Output_AppserverDetails{
-			AppserverDetails: &pb.GetByIdAppserverResponse{Appserver: response.GetAppserver()},
+			AppserverDetails: &pb.GetByIdAppserverResponse{Appserver: appserver.GetAppserver()},
 		},
 	})
 }
@@ -119,6 +126,8 @@ func (wsc *WsConnection) DeleteAppserver(message *pb.Input_DeleteAppserver) ([]b
 	})
 }
 
+// ----- appserver sub handlers ----
+
 func (wsc *WsConnection) JoinAppserver(message *pb.Input_JoinAppserver) ([]byte, error) {
 	ctx, cancel := wsc.SetupContext()
 	defer cancel()
@@ -150,7 +159,63 @@ func (wsc *WsConnection) JoinAppserver(message *pb.Input_JoinAppserver) ([]byte,
 	})
 }
 
-// ----- CHANNEL handlers -----
+// ----- appserver role handlers -----
+func (wsc *WsConnection) CreateAppserverRole(message *pb.Input_CreateAppserverRole) ([]byte, error) {
+	ctx, cancel := wsc.SetupContext()
+	defer cancel()
+
+	sClient := wsc.Client.GetServerClient()
+
+	_, err := sClient.CreateAppserverRole(
+		ctx, &pb.CreateAppserverRoleRequest{
+			AppserverId: message.CreateAppserverRole.AppserverId,
+			Name:        message.CreateAppserverRole.Name},
+	)
+
+	if err != nil {
+		// TODO: raise error for logging
+		return nil, err
+	}
+
+	response, err := sClient.GetAllAppserverRoles(
+		ctx, &pb.GetAllAppserverRolesRequest{AppserverId: message.CreateAppserverRole.AppserverId},
+	)
+
+	if err != nil {
+		// TODO: improve this error handling
+		return nil, err
+	}
+
+	return proto.Marshal(&pb.Output{
+		Data: &pb.Output_AppserverRolesListing{
+			AppserverRolesListing: &pb.GetAllAppserverRolesResponse{AppserverRoles: response.GetAppserverRoles()},
+		},
+	})
+}
+
+func (wsc *WsConnection) AppserverRoleListing(message *pb.Input_AppserverRoleListing) ([]byte, error) {
+	ctx, cancel := wsc.SetupContext()
+	defer cancel()
+
+	sClient := wsc.Client.GetServerClient()
+
+	response, err := sClient.GetAllAppserverRoles(
+		ctx, &pb.GetAllAppserverRolesRequest{AppserverId: message.AppserverRoleListing.AppserverId},
+	)
+
+	if err != nil {
+		// TODO: improve this error handling
+		return nil, err
+	}
+
+	return proto.Marshal(&pb.Output{
+		Data: &pb.Output_AppserverRolesListing{
+			AppserverRolesListing: &pb.GetAllAppserverRolesResponse{AppserverRoles: response.GetAppserverRoles()},
+		},
+	})
+}
+
+// ----- channel handlers -----
 func (wsc *WsConnection) CreateChannel(message *pb.Input_CreateChannel) ([]byte, error) {
 	ctx, cancel := wsc.SetupContext()
 	defer cancel()

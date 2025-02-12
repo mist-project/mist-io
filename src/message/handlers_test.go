@@ -414,6 +414,148 @@ func TestJoinAppserver(t *testing.T) {
 	})
 }
 
+// ---- APPSERVER ROLES -----
+func TestAppserverRoleListing(t *testing.T) {
+	t.Run("is_successful", func(t *testing.T) {
+		// ARRANGE
+		role1 := "foo"
+		role2 := "bar"
+		mockRequest := &pb.GetAllAppserverRolesRequest{AppserverId: "someid"}
+		mockResponse := &pb.GetAllAppserverRolesResponse{}
+		mockResponse.AppserverRoles = []*pb.AppserverRole{
+			{Name: role1},
+			{Name: role2},
+		}
+		mockService := new(MockService)
+		mockService.On("GetAllAppserverRoles", mock.Anything, mock.Anything).Return(mockResponse, nil)
+
+		mockClient := new(MockClient)
+		mockClient.On("GetServerClient").Return(mockService)
+
+		wsc := &message.WsConnection{Client: mockClient}
+
+		// ACT
+		response, err := wsc.AppserverRoleListing(&pb.Input_AppserverRoleListing{AppserverRoleListing: mockRequest})
+
+		// ASSERT
+		assert.Nil(t, err)
+		mockClient.AssertExpectations(t)
+
+		output := &pb.Output{}
+		err = proto.Unmarshal(response, output)
+		roles := output.Data.(*pb.Output_AppserverRolesListing).AppserverRolesListing.AppserverRoles
+
+		assert.Nil(t, err)
+		assert.Equal(t, roles[0].Name, role1)
+		assert.Equal(t, roles[1].Name, role2)
+	})
+
+	t.Run("on_error_returns_error", func(t *testing.T) {
+		// ARRANGE
+		mockService := new(MockService)
+		mockRequest := &pb.GetAllAppserverRolesRequest{AppserverId: "someid"}
+		mockResponse := &pb.GetAllAppserverRolesResponse{}
+		mockService.On("GetAllAppserverRoles", mock.Anything, mock.Anything).Return(mockResponse, errors.New("boom"))
+
+		mockClient := new(MockClient)
+		mockClient.On("GetServerClient").Return(mockService)
+
+		wsc := &message.WsConnection{Client: mockClient}
+
+		// ACT
+		response, err := wsc.AppserverRoleListing(&pb.Input_AppserverRoleListing{AppserverRoleListing: mockRequest})
+
+		// ASSERT
+		assert.NotNil(t, err)
+		assert.Nil(t, response)
+	})
+}
+
+func TestCreateAppserverRole(t *testing.T) {
+	t.Run("is_successful", func(t *testing.T) {
+		// ARRANGE
+		newrole := "new"
+		role1 := "foo"
+		role2 := "bar"
+		mockCreateRequest := &pb.CreateAppserverRoleRequest{Name: newrole}
+		mockCreateResponse := &pb.CreateAppserverRoleResponse{}
+		mockResponse := &pb.GetAllAppserverRolesResponse{}
+		mockResponse.AppserverRoles = []*pb.AppserverRole{
+			{Name: role1},
+			{Name: role2},
+		}
+		mockService := new(MockService)
+		mockService.On("CreateAppserverRole", mock.Anything, mockCreateRequest).Return(mockCreateResponse, nil)
+		mockService.On("GetAllAppserverRoles", mock.Anything, mock.Anything).Return(mockResponse, nil)
+
+		mockClient := new(MockClient)
+		mockClient.On("GetServerClient").Return(mockService)
+
+		wsc := &message.WsConnection{Client: mockClient}
+
+		// ACT
+		response, err := wsc.CreateAppserverRole(
+			&pb.Input_CreateAppserverRole{CreateAppserverRole: mockCreateRequest},
+		)
+
+		// ASSERT
+		assert.Nil(t, err)
+		mockClient.AssertExpectations(t)
+
+		output := &pb.Output{}
+		err = proto.Unmarshal(response, output)
+		roles := output.Data.(*pb.Output_AppserverRolesListing).AppserverRolesListing.AppserverRoles
+
+		assert.Nil(t, err)
+		assert.Equal(t, roles[0].Name, role1)
+		assert.Equal(t, roles[1].Name, role2)
+	})
+
+	t.Run("on_error_when_creating_returns_error", func(t *testing.T) {
+		// ARRANGE
+		mockService := new(MockService)
+		mockCreateRequest := &pb.CreateAppserverRoleRequest{Name: "boom"}
+		mockResponse := &pb.CreateAppserverRoleResponse{}
+		subResponse := &pb.GetAllAppserverRolesResponse{}
+		mockService.On("CreateAppserverRole", mock.Anything, mock.Anything).Return(mockResponse, errors.New("boom"))
+		mockService.On("GetAllAppserverRoles", mock.Anything, mock.Anything).Return(subResponse, errors.New("boom"))
+
+		mockClient := new(MockClient)
+		mockClient.On("GetServerClient").Return(mockService)
+
+		wsc := &message.WsConnection{Client: mockClient}
+
+		// ACT
+		response, err := wsc.CreateAppserverRole(&pb.Input_CreateAppserverRole{CreateAppserverRole: mockCreateRequest})
+
+		// ASSERT
+		assert.NotNil(t, err)
+		assert.Nil(t, response)
+	})
+
+	t.Run("on_error_when_fetching_subs_returns_error", func(t *testing.T) {
+		// ARRANGE
+		mockService := new(MockService)
+		mockCreateRequest := &pb.CreateAppserverRoleRequest{Name: "boom"}
+		mockResponse := &pb.CreateAppserverRoleResponse{}
+		subResponse := &pb.GetAllAppserverRolesResponse{}
+		mockService.On("CreateAppserverRole", mock.Anything, mock.Anything).Return(mockResponse, nil)
+		mockService.On("GetAllAppserverRoles", mock.Anything, mock.Anything).Return(subResponse, errors.New("boom"))
+
+		mockClient := new(MockClient)
+		mockClient.On("GetServerClient").Return(mockService)
+
+		wsc := &message.WsConnection{Client: mockClient}
+
+		// ACT
+		response, err := wsc.CreateAppserverRole(&pb.Input_CreateAppserverRole{CreateAppserverRole: mockCreateRequest})
+
+		// ASSERT
+		assert.NotNil(t, err)
+		assert.Nil(t, response)
+	})
+}
+
 // ---- CHANNEL -----
 func TestCreateChannel(t *testing.T) {
 	t.Run("is_successful", func(t *testing.T) {
