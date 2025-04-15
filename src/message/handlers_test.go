@@ -435,7 +435,7 @@ func TestAppserverRoleListing(t *testing.T) {
 		wsc := &message.WsConnection{Client: mockClient}
 
 		// ACT
-		response, err := wsc.AppserverRoleListing(&pb.Input_AppserverRoleListing{AppserverRoleListing: mockRequest})
+		response, err := wsc.AppserverRolesListing(&pb.Input_AppserverRolesListing{AppserverRolesListing: mockRequest})
 
 		// ASSERT
 		assert.Nil(t, err)
@@ -463,7 +463,7 @@ func TestAppserverRoleListing(t *testing.T) {
 		wsc := &message.WsConnection{Client: mockClient}
 
 		// ACT
-		response, err := wsc.AppserverRoleListing(&pb.Input_AppserverRoleListing{AppserverRoleListing: mockRequest})
+		response, err := wsc.AppserverRolesListing(&pb.Input_AppserverRolesListing{AppserverRolesListing: mockRequest})
 
 		// ASSERT
 		assert.NotNil(t, err)

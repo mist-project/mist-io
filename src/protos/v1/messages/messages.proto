@@ -44,7 +44,7 @@ message Input {
 
     appserver.CreateAppserverSubRequest join_appserver = 8;
     appserver.CreateAppserverRoleRequest create_appserver_role = 9;
-    appserver.GetAllAppserverRolesRequest appserver_role_listing = 10;
+    appserver.GetAllAppserverRolesRequest appserver_roles_listing = 10;
   }
 }
 
