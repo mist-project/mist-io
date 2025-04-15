@@ -193,14 +193,14 @@ func (wsc *WsConnection) CreateAppserverRole(message *pb.Input_CreateAppserverRo
 	})
 }
 
-func (wsc *WsConnection) AppserverRoleListing(message *pb.Input_AppserverRoleListing) ([]byte, error) {
+func (wsc *WsConnection) AppserverRolesListing(message *pb.Input_AppserverRolesListing) ([]byte, error) {
 	ctx, cancel := wsc.SetupContext()
 	defer cancel()
 
 	sClient := wsc.Client.GetServerClient()
 
 	response, err := sClient.GetAllAppserverRoles(
-		ctx, &pb.GetAllAppserverRolesRequest{AppserverId: message.AppserverRoleListing.AppserverId},
+		ctx, &pb.GetAllAppserverRolesRequest{AppserverId: message.AppserverRolesListing.AppserverId},
 	)
 
 	if err != nil {

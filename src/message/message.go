@@ -85,9 +85,9 @@ func (wsc *WsConnection) socketMessageHandler(message *pb.InputMessage, messageT
 		fmt.Printf("<<< Create appserver role	\n")
 		response, err = wsc.CreateAppserverRole(input)
 
-	case *pb.Input_AppserverRoleListing:
+	case *pb.Input_AppserverRolesListing:
 		fmt.Printf("<<< Get appserver role listing\n")
-		response, err = wsc.AppserverRoleListing(input)
+		response, err = wsc.AppserverRolesListing(input)
 	// ----- channel -----
 	case *pb.Input_CreateChannel:
 		fmt.Printf("<<< create appserver message\n")
