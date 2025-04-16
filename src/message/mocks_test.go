@@ -20,7 +20,6 @@ func (m *MockClient) GetServerClient() pb.AppserverServiceClient {
 	args := m.Called()
 	return args.Get(0).(pb.AppserverServiceClient)
 }
-
 func (m *MockClient) GetChannelClient() pb.ChannelServiceClient {
 	args := m.Called()
 	return args.Get(0).(pb.ChannelServiceClient)
@@ -65,6 +64,11 @@ func (m *MockService) DeleteAppserverSub(ctx context.Context, in *pb.DeleteAppse
 	args := m.Called(ctx, in)
 	return args.Get(0).(*pb.DeleteAppserverSubResponse), args.Error(1)
 }
+func (m *MockService) GetAllUsersAppserverSubs(ctx context.Context, in *pb.GetAllUsersAppserverSubsRequest, opts ...grpc.CallOption,
+) (*pb.GetAllUsersAppserverSubsResponse, error) {
+	args := m.Called(ctx, in)
+	return args.Get(0).(*pb.GetAllUsersAppserverSubsResponse), args.Error(1)
+}
 
 // ----- APPSERVER ROLE -----
 func (m *MockService) CreateAppserverRole(ctx context.Context, in *pb.CreateAppserverRoleRequest, opts ...grpc.CallOption,
@@ -89,7 +93,6 @@ func (m *MockService) CreateAppserverRoleSub(ctx context.Context, in *pb.CreateA
 	args := m.Called(ctx, in)
 	return args.Get(0).(*pb.CreateAppserverRoleSubResponse), args.Error(1)
 }
-
 func (m *MockService) DeleteAppserverRoleSub(ctx context.Context, in *pb.DeleteAppserverRoleSubRequest, opts ...grpc.CallOption,
 ) (*pb.DeleteAppserverRoleSubResponse, error) {
 	args := m.Called(ctx, in)
@@ -102,19 +105,16 @@ func (m *MockService) CreateChannel(ctx context.Context, in *pb.CreateChannelReq
 	args := m.Called(ctx, in)
 	return args.Get(0).(*pb.CreateChannelResponse), args.Error(1)
 }
-
 func (m *MockService) ListChannels(ctx context.Context, in *pb.ListChannelsRequest, opts ...grpc.CallOption,
 ) (*pb.ListChannelsResponse, error) {
 	args := m.Called(ctx, in)
 	return args.Get(0).(*pb.ListChannelsResponse), args.Error(1)
 }
-
 func (m *MockService) DeleteChannel(ctx context.Context, in *pb.DeleteChannelRequest, opts ...grpc.CallOption,
 ) (*pb.DeleteChannelResponse, error) {
 	args := m.Called(ctx, in)
 	return args.Get(0).(*pb.DeleteChannelResponse), args.Error(1)
 }
-
 func (m *MockService) GetByIdChannel(ctx context.Context, in *pb.GetByIdChannelRequest, opts ...grpc.CallOption,
 ) (*pb.GetByIdChannelResponse, error) {
 	args := m.Called(ctx, in)

@@ -318,6 +318,7 @@ func TestDeleteAppserver(t *testing.T) {
 	})
 }
 
+// ----- APPSERVER SUBS ------
 func TestJoinAppserver(t *testing.T) {
 	t.Run("is_successful", func(t *testing.T) {
 		// ARRANGE
@@ -407,6 +408,67 @@ func TestJoinAppserver(t *testing.T) {
 		response, err := wsc.JoinAppserver(
 			&pb.Input_JoinAppserver{JoinAppserver: mockRequest},
 		)
+
+		// ASSERT
+		assert.NotNil(t, err)
+		assert.Nil(t, response)
+	})
+}
+
+func TestAppserverUserListing(t *testing.T) {
+	t.Run("is_successful", func(t *testing.T) {
+		// ARRANGE
+		u1 := "foo"
+		u2 := "bar"
+
+		mockResponse := &pb.GetAllUsersAppserverSubsResponse{}
+		mockResponse.Appusers = []*pb.AppuserAndSub{
+			{Appuser: &pb.Appuser{Username: u1}, SubId: "1"},
+			{Appuser: &pb.Appuser{Username: u2}, SubId: "2"},
+		}
+		mockService := new(MockService)
+		mockService.On("GetAllUsersAppserverSubs", mock.Anything, mock.Anything).Return(mockResponse, nil)
+
+		mockClient := new(MockClient)
+		mockClient.On("GetServerClient").Return(mockService)
+
+		wsc := &message.WsConnection{Client: mockClient}
+
+		// ACT
+		response, err := wsc.AppserverUserListing(
+			&pb.Input_AppserverUserListing{
+				AppserverUserListing: &pb.GetAllUsersAppserverSubsRequest{AppserverId: "ok"}})
+
+		// ASSERT
+		assert.Nil(t, err)
+		mockClient.AssertExpectations(t)
+
+		output := &pb.Output{}
+		err = proto.Unmarshal(response, output)
+		appusers := output.Data.(*pb.Output_AppserverUserListing).AppserverUserListing.Appusers
+
+		assert.Nil(t, err)
+		assert.Equal(t, appusers[0].Appuser.Username, u1)
+		assert.Equal(t, appusers[1].Appuser.Username, u2)
+		assert.Equal(t, appusers[0].SubId, "1")
+		assert.Equal(t, appusers[1].SubId, "2")
+	})
+
+	t.Run("on_error_returns_error", func(t *testing.T) {
+		// ARRANGE
+		mockService := new(MockService)
+		mockResponse := &pb.GetAllUsersAppserverSubsResponse{}
+		mockService.On("GetAllUsersAppserverSubs", mock.Anything, mock.Anything).Return(mockResponse, errors.New("boom"))
+
+		mockClient := new(MockClient)
+		mockClient.On("GetServerClient").Return(mockService)
+
+		wsc := &message.WsConnection{Client: mockClient}
+
+		// ACT
+		response, err := wsc.AppserverUserListing(
+			&pb.Input_AppserverUserListing{
+				AppserverUserListing: &pb.GetAllUsersAppserverSubsRequest{AppserverId: "ok"}})
 
 		// ASSERT
 		assert.NotNil(t, err)

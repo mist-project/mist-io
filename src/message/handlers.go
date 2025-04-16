@@ -159,6 +159,28 @@ func (wsc *WsConnection) JoinAppserver(message *pb.Input_JoinAppserver) ([]byte,
 	})
 }
 
+func (wsc *WsConnection) AppserverUserListing(message *pb.Input_AppserverUserListing) ([]byte, error) {
+	ctx, cancel := wsc.SetupContext()
+	defer cancel()
+
+	sClient := wsc.Client.GetServerClient()
+
+	response, err := sClient.GetAllUsersAppserverSubs(
+		ctx, &pb.GetAllUsersAppserverSubsRequest{AppserverId: message.AppserverUserListing.AppserverId},
+	)
+
+	if err != nil {
+		// TODO: raise error for logging
+		return nil, err
+	}
+
+	return proto.Marshal(&pb.Output{
+		Data: &pb.Output_AppserverUserListing{
+			AppserverUserListing: &pb.GetAllUsersAppserverSubsResponse{Appusers: response.GetAppusers()},
+		},
+	})
+}
+
 // ----- appserver role handlers -----
 func (wsc *WsConnection) CreateAppserverRole(message *pb.Input_CreateAppserverRole) ([]byte, error) {
 	ctx, cancel := wsc.SetupContext()

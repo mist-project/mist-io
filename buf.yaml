@@ -1,5 +1,6 @@
 version: v2
 modules:
-  - path: src/protos/v1/channel
   - path: src/protos/v1/appserver
+  - path: src/protos/v1/appuser
+  - path: src/protos/v1/channel
   - path: src/protos/v1/messages

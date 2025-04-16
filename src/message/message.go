@@ -67,6 +67,7 @@ func (wsc *WsConnection) socketMessageHandler(message *pb.InputMessage, messageT
 	case *pb.Input_AppserverDetails:
 		fmt.Printf("<<< appserver details message\n")
 		response, err = wsc.AppserverDetails(input)
+
 	case *pb.Input_CreateAppserver:
 		fmt.Printf("<<< create appserver message\n")
 		response, err = wsc.CreateAppserver(input)
@@ -80,7 +81,11 @@ func (wsc *WsConnection) socketMessageHandler(message *pb.InputMessage, messageT
 		fmt.Printf("<<< Join app server\n")
 		response, err = wsc.JoinAppserver(input)
 
-		// ----- appserver role -----
+	case *pb.Input_AppserverUserListing:
+	fmt.Printf("<<< Appserver server sub listing\n")
+	response, err = wsc.AppserverUserListing(input)
+
+	// ----- appserver role -----
 	case *pb.Input_CreateAppserverRole:
 		fmt.Printf("<<< Create appserver role	\n")
 		response, err = wsc.CreateAppserverRole(input)
@@ -88,13 +93,16 @@ func (wsc *WsConnection) socketMessageHandler(message *pb.InputMessage, messageT
 	case *pb.Input_AppserverRolesListing:
 		fmt.Printf("<<< Get appserver role listing\n")
 		response, err = wsc.AppserverRolesListing(input)
+
 	// ----- channel -----
 	case *pb.Input_CreateChannel:
 		fmt.Printf("<<< create appserver message\n")
 		response, err = wsc.CreateChannel(input)
+
 	case *pb.Input_ChannelListing:
 		fmt.Printf("<<< channel listing message\n")
 		response, err = wsc.ChanneListing(input)
+
 	default:
 		fmt.Println("Unknown type")
 	}
