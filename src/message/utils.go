@@ -3,12 +3,12 @@ package message
 import (
 	"context"
 	"fmt"
+	"mist-io/src/protos/v1/appserver"
+	"mist-io/src/protos/v1/channel"
 	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-
-	pb "mist-io/src/protos/v1/gen"
 )
 
 func (wsc *WsConnection) SetupContext() (context.Context, context.CancelFunc) {
@@ -23,18 +23,18 @@ func (wsc *WsConnection) SetupContext() (context.Context, context.CancelFunc) {
 }
 
 type GrpcClient interface {
-	GetServerClient() pb.AppserverServiceClient
-	GetChannelClient() pb.ChannelServiceClient
+	GetServerClient() appserver.AppserverServiceClient
+	GetChannelClient() channel.ChannelServiceClient
 }
 
 type Client struct {
 	Conn *grpc.ClientConn
 }
 
-func (c Client) GetServerClient() pb.AppserverServiceClient {
-	return pb.NewAppserverServiceClient(c.Conn)
+func (c Client) GetServerClient() appserver.AppserverServiceClient {
+	return appserver.NewAppserverServiceClient(c.Conn)
 }
 
-func (c Client) GetChannelClient() pb.ChannelServiceClient {
-	return pb.NewChannelServiceClient(c.Conn)
+func (c Client) GetChannelClient() channel.ChannelServiceClient {
+	return channel.NewChannelServiceClient(c.Conn)
 }

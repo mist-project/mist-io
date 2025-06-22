@@ -13,6 +13,12 @@ import "v1/appuser/appuser.proto";
 import "v1/channel/channel.proto";
 
 // ----- SHARED -----
+
+message Meta {
+  ActionType action = 1;
+  repeated appuser.Appuser appusers = 2;
+}
+
 message Event {
   Meta meta = 1;
   oneof data {
@@ -35,9 +41,32 @@ message Event {
   };
 }
 
-message Meta {
+message NotificationMeta {
   ActionType action = 1;
-  repeated appuser.Appuser appusers = 2;
+  appuser.Appuser appusers = 2;
+}
+
+message Notification {
+  NotificationMeta meta = 1;
+
+  oneof data {
+    // LIST
+    ListServers list_servers = 2;
+    ListChannels list_channels = 3;
+    ListRoles list_roles = 4;
+
+    // ADD
+    AddServer add_server = 100;
+    AddChannel add_channel = 101;
+    AddRole add_role = 102;
+
+    // UPDATE
+
+    // REMOVE
+    RemoveServer remove_server = 300;
+    RemoveChannel remove_channel = 301;
+    RemoveRole remove_role = 302;
+  };
 }
 
 enum ActionType {

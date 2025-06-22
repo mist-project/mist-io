@@ -6,39 +6,36 @@ import (
 	"mist-io/src/internal/faults"
 	"mist-io/src/internal/logging/logger"
 	"sync"
+
+	"github.com/gorilla/websocket"
 )
 
-type WSConnInterface interface {
-	Close() error
-	ReadMessage() (messageType int, p []byte, err error)
-	WriteMessage(messageType int, data []byte) error
-}
-
 type WebSocketManager interface {
-	AddSocketConnection(id string, conn WSConnInterface) error
-	FindSocketConnection(id string) (WSConnInterface, error)
+	AddSocketConnection(id string, conn *websocket.Conn) error
+	FindSocketConnection(id string) (*websocket.Conn, error)
 	RemoveSocketConnection(id string)
+	BulkFindSocketConnection(id []string) map[string]*websocket.Conn
 }
 
 type WSManager struct {
-	connections map[string]WSConnInterface
+	connections map[string]*websocket.Conn
 	mu          sync.Mutex
 }
 
 func NewWSManager() *WSManager {
 	return &WSManager{
-		connections: make(map[string]WSConnInterface),
+		connections: make(map[string]*websocket.Conn),
 		mu:          sync.Mutex{},
 	}
 }
 
-func (wsm *WSManager) SetConnections(connections map[string]WSConnInterface) {
+func (wsm *WSManager) SetConnections(connections map[string]*websocket.Conn) {
 	wsm.mu.Lock()
 	defer wsm.mu.Unlock()
 	wsm.connections = connections
 }
 
-func (wsm *WSManager) AddSocketConnection(id string, conn WSConnInterface) error {
+func (wsm *WSManager) AddSocketConnection(id string, conn *websocket.Conn) error {
 	wsm.mu.Lock()
 	defer wsm.mu.Unlock()
 
@@ -60,7 +57,7 @@ func (wsm *WSManager) AddSocketConnection(id string, conn WSConnInterface) error
 	return nil
 }
 
-func (wsm *WSManager) FindSocketConnection(id string) (WSConnInterface, error) {
+func (wsm *WSManager) FindSocketConnection(id string) (*websocket.Conn, error) {
 	wsm.mu.Lock()
 	defer wsm.mu.Unlock()
 
@@ -71,6 +68,20 @@ func (wsm *WSManager) FindSocketConnection(id string) (WSConnInterface, error) {
 	}
 
 	return val, nil
+}
+
+func (wsm *WSManager) BulkFindSocketConnection(id []string) map[string]*websocket.Conn {
+	wsm.mu.Lock()
+	defer wsm.mu.Unlock()
+
+	conns := make(map[string]*websocket.Conn)
+	for _, v := range id {
+		if conn, ok := wsm.connections[v]; ok {
+			conns[v] = conn
+		}
+	}
+
+	return conns
 }
 
 func (wsm *WSManager) RemoveSocketConnection(id string) {

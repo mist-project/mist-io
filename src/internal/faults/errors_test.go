@@ -67,6 +67,18 @@ func TestErrorHelpers(t *testing.T) {
 			wantMessage: faults.MessageSubscriberErrorMessage,
 			wantCode:    codes.Unknown,
 		},
+		{
+			name:        "SocketNotFoundError",
+			got:         faults.SocketNotFoundError("error root cause", slog.LevelDebug),
+			wantMessage: faults.SocketNotFoundErrorMessage,
+			wantCode:    codes.NotFound,
+		},
+		{
+			name:        "SocketWriteError",
+			got:         faults.SocketWriteError("error root cause", slog.LevelDebug),
+			wantMessage: faults.SocketWriteErrorMessage,
+			wantCode:    codes.Internal,
+		},
 	}
 
 	for _, tt := range tests {

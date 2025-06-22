@@ -18,6 +18,7 @@ const (
 	MarshallErrorMessage          = "Unprocessable Entity: Marshalling Error"
 	UnknownErrorMessage           = "Internal Server Error"
 	SocketNotFoundErrorMessage    = "Socket Not Found Error"
+	SocketWriteErrorMessage       = "WebSocket Write Error"
 )
 
 func NotFoundError(root string, debugLevel slog.Level) *CustomError {
@@ -54,6 +55,10 @@ func MessageSubscriberError(root string, debugLevel slog.Level) *CustomError {
 
 func SocketNotFoundError(root string, debugLevel slog.Level) *CustomError {
 	return NewError(SocketNotFoundErrorMessage, root, codes.NotFound, debugLevel)
+}
+
+func SocketWriteError(root string, debugLevel slog.Level) *CustomError {
+	return NewError(SocketWriteErrorMessage, root, codes.Internal, debugLevel)
 }
 
 func RpcCustomErrorHandler(ctx context.Context, err error) error {

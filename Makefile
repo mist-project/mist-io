@@ -26,6 +26,11 @@ compile-protos cp:
 	@buf generate
 
 # ----- TESTS -----
+
+run-tests:
+	@go test -cover -race ./... | grep -v 'testutil' | grep -v 'src/protos'
+
+
 tests t: test-auth test-ws test-message
 
 test-auth:
@@ -42,6 +47,11 @@ test-ws:
 test-message:
 	@echo -----------------------------------------
 	@go test mist-io/src/message -coverprofile=coverage/coverage.out  $(go_test_flags)
+	@go tool cover $(go_test_coverage_flags)
+
+test-internal:
+	@echo -----------------------------------------
+	@go test mist-io/src/internal/... -coverprofile=coverage/coverage.out  $(go_test_flags)
 	@go tool cover $(go_test_coverage_flags)
 
 # ----- FORMAT -----

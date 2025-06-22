@@ -7,14 +7,13 @@ import (
 	"github.com/gorilla/websocket"
 
 	"mist-io/src/auth"
-	"mist-io/src/internal/subscriber"
 	"mist-io/src/internal/worker"
 	"mist-io/src/message"
 )
 
 type WsServerDeps struct {
-	Redis      subscriber.RedisInterface
 	WorkerPool *worker.WorkerPool
+	WSManager  WebSocketManager
 }
 
 type WsServer struct {
@@ -30,6 +29,7 @@ func WsHandler(upgrader *websocket.Upgrader, deps WsServerDeps) func(w http.Resp
 		// TODO: TECH DEBT- ws session should first be authenticated via a regular REST and then that will return session token which
 		// the user sends to this endpoint, and then that token gets verified (single use token, can probably store in memory or redis
 
+		// Authenticate the request
 		tokenAndClaims, err := auth.AuthenticateRequest(r.URL.Query())
 
 		if err != nil {
@@ -44,7 +44,12 @@ func WsHandler(upgrader *websocket.Upgrader, deps WsServerDeps) func(w http.Resp
 			http.Error(w, "Unable to upgrade connection.", http.StatusBadRequest)
 			return
 		}
+
+		fmt.Printf("WebSocket connection established for user: %s\n", tokenAndClaims.Claims.UserID)
+
+		deps.WSManager.AddSocketConnection(tokenAndClaims.Claims.UserID, conn)
 		defer conn.Close()
+		defer deps.WSManager.RemoveSocketConnection(tokenAndClaims.Claims.UserID)
 
 		// TODO: ADD client connection to a dictionary? TBD
 		wsConnection := message.WsConnection{
@@ -52,9 +57,10 @@ func WsHandler(upgrader *websocket.Upgrader, deps WsServerDeps) func(w http.Resp
 			// Mutex:    &sync.Mutex{}, // TBD if needed
 			JwtToken: tokenAndClaims.Token,
 			Claims:   tokenAndClaims.Claims,
-			Client:   message.Client{},
 		}
+
 		wsConnection.Manage()
+
 	}
 
 	return handler

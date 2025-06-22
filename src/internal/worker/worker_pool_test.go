@@ -2,11 +2,15 @@ package worker_test
 
 import (
 	"bytes"
+	"fmt"
 	"mist-io/src/internal/logging/logger"
 	"mist-io/src/internal/worker"
+	"mist-io/src/internal/worker/jobs"
+	"mist-io/src/testutil/mocks"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestWorkerPool_AddJob(t *testing.T) {
@@ -14,20 +18,13 @@ func TestWorkerPool_AddJob(t *testing.T) {
 	t.Run("Success:job_added_to_queue", func(t *testing.T) {
 		// ARRANGE
 		wp := worker.NewWorkerPool(2, 10)
-		// ctx := context.Background()
-		// mockRedis := new(testutil.MockRedis)
-		// mockData := &channel.Channel{}
-		// notification := producer.NewNotificationJob(
-		// 	ctx,
-		// 	"channel",
-		// 	mockData,
-		// 	event.ActionType_ACTION_ADD_CHANNEL,
-		// 	nil,
-		// 	mockRedis,
-		// )
+		mockWsc := new(mocks.MockWebSocketConnection)
+		notification := jobs.NewNotificationJob(
+			[]byte{}, mockWsc,
+		)
 
 		// ACT
-		// wp.AddJob(notification)
+		wp.AddJob(notification)
 
 		// ASSERT
 		assert.Equal(t, wp.GetJobQueueSize(), 1, "Expected job queue size to be 1")
@@ -38,19 +35,14 @@ func TestWorkerPool_AddJob(t *testing.T) {
 		wp := worker.NewWorkerPool(3, 10)
 		wp.StartWorkers()
 		wp.Stop() // Cancel the context immediately
-		// mockRedis := new(testutil.MockRedis)
-		// mockData := &channel.Channel{}
-		// notification := producer.NewNotificationJob(
-		// 	context.Background(),
-		// 	"channel",
-		// 	mockData,
-		// 	event.ActionType_ACTION_ADD_CHANNEL,
-		// 	nil,
-		// 	mockRedis,
-		// )
 
-		// // ACT
-		// wp.AddJob(notification)
+		mockWsc := new(mocks.MockWebSocketConnection)
+		notification := jobs.NewNotificationJob(
+			[]byte{}, mockWsc,
+		)
+
+		// ACT
+		wp.AddJob(notification)
 
 		// ASSERT
 		assert.Equal(t, wp.GetJobQueueSize(), 0, "Expected job queue size to be 0 due to cancelled context")
@@ -61,33 +53,25 @@ func TestWorkerPool_AddJob(t *testing.T) {
 		var buf bytes.Buffer
 		logger.SetLogOutput(&buf) // redirect logger output
 
-		// wp := worker.NewWorkerPool(2, 10)
-		// ctx := context.Background()
+		wp := worker.NewWorkerPool(2, 10)
+		mockWsc := new(mocks.MockWebSocketConnection)
 
-		// mockRedis := new(testutil.MockRedis)
-		// mockData := &channel.Channel{}
+		mockWsc.On("WriteMessage", mock.Anything, mock.Anything).Return(fmt.Errorf("boomed connection"))
 
-		// notification := producer.NewNotificationJob(
-		// 	ctx,
-		// 	"channel",
-		// 	mockData,
-		// 	event.ActionType_ACTION_LIST_CHANNELS, // This should trigger a failure
-		// 	nil,
-		// 	mockRedis,
-		// )
+		notification := jobs.NewNotificationJob(
+			[]byte{}, mockWsc,
+		)
 
-		// wp.StartWorkers()
+		// ACT
+		wp.AddJob(notification)
+		wp.StartWorkers()
 
-		// // ACT
-		// wp.AddJob(notification)
-
-		// // Wait for the job to be processed
-		// wp.Stop()
+		// Wait for the job to be processed
+		wp.Stop()
 
 		// ASSERT
 		logOutput := buf.String()
 		assert.Contains(t, logOutput, "ERROR", "")
-		assert.Contains(t, logOutput, "invalid data for action", "Expected log to contain error message for invalid data")
 	})
 }
 

@@ -1,8 +1,9 @@
 package message_test
 
 import (
-	"mist-io/src/message"
 	"testing"
+
+	"mist-io/src/message"
 
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
