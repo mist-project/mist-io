@@ -36,7 +36,7 @@ test-auth:
 
 test-ws:
 	@echo -----------------------------------------
-	@go test mist-io/src/ws -coverprofile=coverage/coverage.out  $(go_test_flags)
+	@go test mist-io/src/api/ws -coverprofile=coverage/coverage.out  $(go_test_flags)
 	@go tool cover $(go_test_coverage_flags)
 
 test-message:
