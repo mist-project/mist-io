@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+package v1.event;
+option go_package = "mist-io/src/protos/v1/event;event";
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+import "v1/appserver/appserver.proto";
+import "v1/appserver_role/appserver_role.proto";
+import "v1/appuser/appuser.proto";
+import "v1/channel/channel.proto";
+
+// ----- SHARED -----
+
+message Meta {
+  ActionType action = 1;
+  repeated appuser.Appuser appusers = 2;
+}
+
+message Event {
+  Meta meta = 1;
+  oneof data {
+    // LIST
+    ListServers list_servers = 2;
+    ListChannels list_channels = 3;
+    ListRoles list_roles = 4;
+
+    // ADD
+    AddServer add_server = 100;
+    AddChannel add_channel = 101;
+    AddRole add_role = 102;
+
+    // UPDATE
+
+    // REMOVE
+    RemoveServer remove_server = 300;
+    RemoveChannel remove_channel = 301;
+    RemoveRole remove_role = 302;
+  };
+}
+
+message NotificationMeta {
+  ActionType action = 1;
+  appuser.Appuser appusers = 2;
+}
+
+message Notification {
+  NotificationMeta meta = 1;
+
+  oneof data {
+    // LIST
+    ListServers list_servers = 2;
+    ListChannels list_channels = 3;
+    ListRoles list_roles = 4;
+
+    // ADD
+    AddServer add_server = 100;
+    AddChannel add_channel = 101;
+    AddRole add_role = 102;
+
+    // UPDATE
+
+    // REMOVE
+    RemoveServer remove_server = 300;
+    RemoveChannel remove_channel = 301;
+    RemoveRole remove_role = 302;
+  };
+}
+
+enum ActionType {
+  ACTION_TYPE_UNSPECIFIED = 0;
+  // LIST
+  ACTION_LIST_SERVERS = 1;
+  ACTION_LIST_CHANNELS = 2;
+  ACTION_LIST_ROLES = 3;
+
+  // ADD
+  ACTION_ADD_SERVER = 100;
+  ACTION_ADD_CHANNEL = 101;
+  ACTION_ADD_ROLE = 102;
+
+  // UPDATE
+
+  // REMOVE
+  ACTION_REMOVE_SERVER = 300;
+  ACTION_REMOVE_CHANNEL = 301;
+  ACTION_REMOVE_ROLE = 302;
+}
+
+// MESSAGES
+// ----- LIST ------
+message ListServers { repeated appserver.Appserver appservers = 1; }
+message ListChannels { repeated channel.Channel channels = 1; }
+message ListRoles { repeated appserver_role.AppserverRole roles = 1; }
+
+// ----- ADD ------
+message AddServer { appserver.Appserver appserver = 1; }
+message AddChannel { channel.Channel channel = 1; }
+message AddRole { appserver_role.AppserverRole role = 1; }
+
+// ----- UPDATE ------
+
+// ----- REMOVE ------
+message RemoveServer { string id = 1; }
+message RemoveChannel { string id = 1; }
+message RemoveRole { string id = 1; }
