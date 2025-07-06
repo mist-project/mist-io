@@ -19,6 +19,7 @@ const (
 	UnknownErrorMessage           = "Internal Server Error"
 	SocketNotFoundErrorMessage    = "Socket Not Found Error"
 	SocketWriteErrorMessage       = "WebSocket Write Error"
+	RedisErrorMessage             = "Redis Error"
 )
 
 func NotFoundError(root string, debugLevel slog.Level) *CustomError {
@@ -59,6 +60,10 @@ func SocketNotFoundError(root string, debugLevel slog.Level) *CustomError {
 
 func SocketWriteError(root string, debugLevel slog.Level) *CustomError {
 	return NewError(SocketWriteErrorMessage, root, codes.Internal, debugLevel)
+}
+
+func RedisError(root string, debugLevel slog.Level) *CustomError {
+	return NewError(RedisErrorMessage, root, codes.Internal, debugLevel)
 }
 
 func RpcCustomErrorHandler(ctx context.Context, err error) error {

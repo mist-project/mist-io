@@ -18,23 +18,19 @@ func InitializeServer() {
 	logger.Debug("Initializing WebSocket server")
 	address := fmt.Sprintf(":%s", os.Getenv("APP_PORT"))
 
+	// ----- WORKER POOL SETUP -----
 	logger.Debug("Starting Worker Pool")
 	wp := worker.NewWorkerPool(4, 2048)
 	wp.StartWorkers() // Start the worker pool
 	logger.Debug("Worker Pool started")
 	defer wp.Stop()
 
+	// ----- WEBSOCKET MANAGER SETUP -----
 	logger.Debug("Creating WebSocket manager")
 	wsManager := ws.NewWSManager()
 	logger.Debug("WebSocket manager created")
 
-	upgrader := websocket.Upgrader{CheckOrigin: checkOrigin}
-	ws.AddHandlers(&upgrader, ws.WsServerDeps{
-		WorkerPool: wp,
-		WSManager:  wsManager,
-	})
-
-	// Set up REDIS connection and listener
+	// ----- REDIS SETUP -----
 	logger.Debug("Connecting to Redis")
 	redisClient := mist_redis.ConnectToRedis(os.Getenv("REDIS_DB"))
 	defer redisClient.Close()
@@ -45,8 +41,17 @@ func InitializeServer() {
 	}).StartListening()
 	logger.Debug("Redis listener started")
 
+	// ----- WEBSOCKET HANDLER SETUP -----
+	upgrader := websocket.Upgrader{CheckOrigin: checkOrigin}
+	h := ws.AddHandlers(&upgrader, ws.WsServerDeps{
+		WorkerPool:  wp,
+		WSManager:   wsManager,
+		RedisClient: redisClient,
+	})
+
+	// ----- HTTP SERVER SETUP -----
 	logger.Info(fmt.Sprintf("Starting WebSocket server on %s", address))
-	if err := http.ListenAndServe(address, nil); err != nil {
+	if err := http.ListenAndServe(address, h); err != nil {
 		log.Panicf("Error starting server: %v", err)
 	}
 }

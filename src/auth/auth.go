@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"os"
 	"strings"
 
@@ -78,10 +77,8 @@ func verifyJWT(tokenStr string) (*CustomJWTClaims, error) {
 	return claims, nil
 }
 
-func AuthenticateRequest(params url.Values) (*TokenAndClaims, error) {
-	authorization := params.Get("authorization")
+func AuthenticateRequest(authorization string) (*TokenAndClaims, error) {
 	parameters := strings.Split(authorization, " ")
-
 	if len(parameters) != 2 || parameters[0] != "Bearer" {
 		return nil, status.Errorf(codes.Unauthenticated, "invalid token")
 	}

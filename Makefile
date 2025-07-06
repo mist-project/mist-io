@@ -31,6 +31,9 @@ run-tests:
 	@go test -cover -race ./... | grep -v 'testutil' | grep -v 'src/protos'
 
 
+tbreak:
+	go test ./... -run "$(t)"
+	
 tests t: test-auth test-ws test-message
 
 test-auth:
