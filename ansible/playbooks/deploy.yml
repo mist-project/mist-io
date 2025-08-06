@@ -1,0 +1,32 @@
+- name: Deploy Mist IO Application
+  hosts: mist-service
+  gather_facts: false
+  become: true
+
+  tasks:
+    - name: Pull latest mist-io image
+      community.docker.docker_image:
+        name: registry.mist-project.app/mist-io:latest
+        source: pull
+
+    - name: Run Docker container
+      community.docker.docker_container:
+        name: mist_io
+        image: registry.mist-project.app/mist-io:latest
+        state: started
+        ports:
+          - "{{ APP_PORT }}:{{ APP_PORT }}"
+        restart_policy: always # container restarts on failure
+        env:
+          LOG_LEVEL: "{{ LOG_LEVEL }}"
+          REDIS_HOSTNAME: "{{ REDIS_HOSTNAME }}"
+          REDIS_PORT: "{{ REDIS_PORT }}"
+          REDIS_USERNAME: "{{ REDIS_USERNAME }}"
+          REDIS_PASSWORD: "{{ REDIS_PASSWORD }}"
+          REDIS_DB: "{{ REDIS_DB }}"
+          REDIS_NOTIFICATION_CHANNEL: "{{ REDIS_NOTIFICATION_CHANNEL }}"
+          MIST_BACKEND_APP_URL: "{{ MIST_BACKEND_APP_URL }}"
+          MIST_API_JWT_SECRET_KEY: "{{ MIST_API_JWT_SECRET_KEY }}"
+          MIST_API_JWT_AUDIENCE: "{{ MIST_API_JWT_AUDIENCE }}"
+          MIST_API_JWT_ISSUER: "{{ MIST_API_JWT_ISSUER }}"
+          APP_PORT: "{{ APP_PORT }}"

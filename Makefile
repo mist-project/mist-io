@@ -20,7 +20,7 @@ build: compile-protos
 	@go build -o bin/mist src/main.go
 
 live-run: compile-protos
-	@air --build.cmd "go build -o bin/mist src/main.go" --build.bin "./bin/mist"
+	@air --build.cmd "go build -o bin/mistio src/main.go" --build.bin "./bin/mistio"
 
 compile-protos cp:
 	@buf generate
