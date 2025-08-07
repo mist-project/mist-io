@@ -83,7 +83,7 @@ func WsHandler(upgrader *websocket.Upgrader, deps WsServerDeps) func(w http.Resp
 			return
 		}
 
-		logger.Info("WebSocket connection established for user: %s\n", tokenAndClaims.Claims.UserID)
+		logger.Info("WebSocket connection established for user. %s\n", "user", tokenAndClaims.Claims.UserID)
 
 		deps.WSManager.AddSocketConnection(tokenAndClaims.Claims.UserID, conn)
 		defer conn.Close()
