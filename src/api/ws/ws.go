@@ -79,7 +79,9 @@ func WsHandler(upgrader *websocket.Upgrader, deps WsServerDeps) func(w http.Resp
 		conn, err := upgrader.Upgrade(w, r, nil)
 
 		if err != nil {
-			http.Error(w, "Unable to upgrade connection.", http.StatusBadRequest)
+			faults.UnknownError(
+				fmt.Sprintf("websocket upgrade failed: %v", err), slog.LevelWarn,
+			).LogError(context.Background())
 			return
 		}
 
